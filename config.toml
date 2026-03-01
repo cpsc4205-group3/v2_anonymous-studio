@@ -1,0 +1,38 @@
+# Anonymous Studio — Taipy Core Configuration
+# This file mirrors the programmatic config in core_config.py so the
+# Taipy VS Code extension can parse the pipeline structure.
+#
+# The authoritative config is core_config.py — that's what actually runs.
+# If you change DataNodes, Tasks, or Scenarios there, update this file too.
+
+[TAIPY]
+
+[JOB]
+mode = "development"
+# Set to "standalone" and max_nb_of_workers = 4 for production
+# (or use env var ANON_MODE=standalone)
+
+[DATA_NODE.raw_input]
+storage_type = "pickle"
+scope = "SCENARIO"
+
+[DATA_NODE.job_config]
+storage_type = "pickle"
+scope = "SCENARIO"
+
+[DATA_NODE.anon_output]
+storage_type = "pickle"
+scope = "SCENARIO"
+
+[DATA_NODE.job_stats]
+storage_type = "pickle"
+scope = "SCENARIO"
+
+[TASK.anonymize_task]
+function = "tasks.run_pii_anonymization"
+inputs = ["raw_input", "job_config"]
+outputs = ["anon_output", "job_stats"]
+skippable = false
+
+[SCENARIO.pii_pipeline]
+tasks = ["anonymize_task"]
