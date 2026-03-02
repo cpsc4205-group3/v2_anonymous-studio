@@ -20,4 +20,4 @@ jobs:
           python-version: "3.12"
 
       - name: Check Python syntax
-        run: python -m py_compile app.py pii_engine.py tasks.py store.py core_config.py
+        run: find . -name '*.py' ! -path './.venv/*' -exec python -m py_compile {} +
