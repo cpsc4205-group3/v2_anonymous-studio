@@ -608,6 +608,11 @@ NLP Engine: <|{spacy_status}|text|>
 <|1. Input and Run|text|class_name=sh sh-top|>
 <|{qt_input}|input|multiline=True|lines_shown=10|label=Input text|class_name=fullwidth|>
 
+<|layout|columns=2 1|gap=12px|class_name=qt-method-bar|
+<|{qt_operator}|selector|lov={qt_operator_list}|dropdown=True|label=Anonymization method|hover_text=replace: swap with [ENTITY_TYPE] label · redact: delete PII entirely · mask: overwrite with *** · hash: SHA-256 one-way hash · synthesize: replace with realistic fake data|>
+<|{qt_threshold}|slider|min=0.1|max=1.0|step=0.05|hover_text=Minimum confidence threshold — higher values reduce false positives|label=Min. confidence ({qt_threshold:.2f})|>
+|>
+
 <|part|class_name=qt-actions|
 <|Detect PII|button|on_action=on_qt_analyze|>
 <|Anonymize|button|on_action=on_qt_anonymize|>
@@ -649,11 +654,11 @@ NLP Engine: <|{spacy_status}|text|>
 <|2. Output|text|class_name=sh|>
 <|layout|columns=1 1|gap=24px|
 <|part|class_name=panel|
-<|Detected PII|text|class_name=sh sh-top|>
+<|Detected PII (original)|text|class_name=sh sh-top|>
 <|{qt_highlight_md}|text|mode=md|class_name=hi-box|>
 |>
 <|part|class_name=panel|
-<|Anonymized Output|text|class_name=sh sh-top|>
+<|Anonymized Output ({qt_operator})|text|class_name=sh sh-top|>
 <|{qt_anonymized_raw}|text|mode=pre|class_name=anon-box|>
 <|layout|columns=1 1 8|gap=8px|
 <|Download TXT|button|on_action=on_qt_download_anonymized|class_name=secondary|render={qt_anonymized_raw!=""}|>
