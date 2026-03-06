@@ -44,6 +44,10 @@ class StoreBase(ABC):
     def list_sessions(self) -> List[PIISession]:
         """All sessions, newest first."""
 
+    @abstractmethod
+    def list_sessions_by_card(self, card_id: str) -> List[PIISession]:
+        """All sessions linked to a specific pipeline card, newest first."""
+
     # ── Pipeline Cards ─────────────────────────────────────────────────────────
 
     @abstractmethod

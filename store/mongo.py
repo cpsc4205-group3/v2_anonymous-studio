@@ -168,6 +168,12 @@ class MongoStore(StoreBase):
         cursor = self._sessions.find().sort("created_at", DESCENDING).limit(limit)
         return [_from_doc(PIISession, d) for d in cursor]
 
+    def list_sessions_by_card(self, card_id: str) -> List[PIISession]:
+        cursor = self._sessions.find(
+            {"pipeline_card_id": card_id}
+        ).sort("created_at", DESCENDING)
+        return [_from_doc(PIISession, d) for d in cursor]
+
     # ── PipelineCard ──────────────────────────────────────────────────────────
 
     def add_card(self, card: PipelineCard) -> PipelineCard:

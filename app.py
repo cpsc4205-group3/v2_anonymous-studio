@@ -616,6 +616,7 @@ attest_by     = ""
 # Per-card audit history dialog
 card_audit_open = False
 card_audit_data = pd.DataFrame(columns=["Time", "Action", "Actor", "Details"])
+card_sessions_data = pd.DataFrame(columns=["ID", "Title", "Operator", "Entities", "Source", "Created"])
 
 # ── Schedule ──────────────────────────────────────────────────────────────────
 appt_table     = pd.DataFrame(columns=["id", "Title", "Date / Time", "Duration", "Attendees", "Linked Card", "Status"])
@@ -4303,13 +4304,53 @@ def _load_job_results(state, jid: str):
             state.download_scenario_id = jid
             state.download_rows        = len(anon_df)
             state.download_cols        = len(anon_df.columns)
-        # Move linked card to review
+        # Move linked card to review and create a PIISession for traceability
         for c in store.list_cards():
             if getattr(c, 'job_id', None) == jid and c.status == "in_progress":
                 store.update_card(c.id, status="review")
                 store.log_user_action("system", "pipeline.auto_move", "card", c.id,
                           f"Auto-moved to review after job {jid[:8]} completed",
                           severity=_priority_to_severity(getattr(c, "priority", "medium")))
+                # Create a PIISession that captures this job's inputs/outputs/metadata
+                # and links it back to the originating pipeline card.
+                try:
+                    entity_counts: Dict[str, int] = {}
+                    if stats_data:
+                        entity_counts = dict(stats_data.get("entity_counts") or {})
+                    cfg_data: Dict = {}
+                    try:
+                        cfg_data = sc.job_config.read() or {}
+                    except Exception:
+                        pass
+                    sample_rows: List[Dict] = []
+                    if stats_data:
+                        for item in (stats_data.get("sample_before") or [])[:5]:
+                            sample_rows.append({"text": str(item), "entity_type": "", "score": 0.0,
+                                                "start": 0, "end": 0, "recognizer": ""})
+                    fname = str(cfg_data.get("file_name", "") or "")
+                    operator = str(cfg_data.get("operator", "replace") or "replace")
+                    session = PIISession(
+                        title=f"File job {jid[:8]}" + (f" — {fname}" if fname else ""),
+                        original_text=fname,
+                        anonymized_text="",
+                        entities=sample_rows,
+                        entity_counts=entity_counts,
+                        operator=operator,
+                        source_type="file",
+                        file_name=fname or None,
+                        pipeline_card_id=c.id,
+                        processing_ms=float(stats_data.get("duration_s", 0) or 0) * 1000.0
+                        if stats_data else 0.0,
+                    )
+                    store.add_session(session)
+                    store.update_card(c.id, session_id=session.id)
+                    store.log_user_action(
+                        "system", "session.attach", "card", c.id,
+                        f"Session {session.id[:8]} auto-attached on job {jid[:8]} completion",
+                        severity=_priority_to_severity(getattr(c, "priority", "medium")),
+                    )
+                except Exception:
+                    _log.exception("session_create_error")
         _refresh_pipeline(state)
         _refresh_audit(state)
         _refresh_job_errors(state)
@@ -4795,6 +4836,23 @@ def on_card_history(state):
     state.card_audit_data = pd.DataFrame(
         rows or [{"Time": "—", "Action": "No history yet", "Actor": "", "Details": ""}],
         columns=["Time", "Action", "Actor", "Details"],
+    )
+    linked_sessions = store.list_sessions_by_card(cid)
+    session_rows = [
+        {
+            "ID": s.id[:8],
+            "Title": s.title[:50],
+            "Operator": s.operator,
+            "Entities": sum(s.entity_counts.values()) if s.entity_counts else 0,
+            "Source": s.source_type,
+            "Created": s.created_at[5:16].replace("T", " "),
+        }
+        for s in linked_sessions
+    ]
+    state.card_sessions_data = pd.DataFrame(
+        session_rows or [{"ID": "—", "Title": "No sessions linked", "Operator": "",
+                          "Entities": 0, "Source": "", "Created": ""}],
+        columns=["ID", "Title", "Operator", "Entities", "Source", "Created"],
     )
     state.card_audit_open = True
 

@@ -174,6 +174,15 @@ class DuckDBStore(StoreBase):
         payloads = self._list_payloads("pii_sessions", "created_at", desc=True)
         return [_from_payload(PIISession, p) for p in payloads]
 
+    def list_sessions_by_card(self, card_id: str) -> List[PIISession]:
+        rows = self._conn.execute(
+            "SELECT payload FROM pii_sessions "
+            "WHERE json_extract_string(payload::JSON, '$.pipeline_card_id') = ? "
+            "ORDER BY created_at DESC",
+            [card_id],
+        ).fetchall()
+        return [_from_payload(PIISession, str(r[0])) for r in rows]
+
     # ── Pipeline cards ────────────────────────────────────────────────────────
 
     def add_card(self, card: PipelineCard) -> PipelineCard:

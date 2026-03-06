@@ -76,6 +76,31 @@ class TestPIISession:
         # (same-second ties acceptable in unit tests)
         assert len(sessions) == 2
 
+    def test_list_sessions_by_card_returns_linked(self, store):
+        card = PipelineCard(title="My Card")
+        store.add_card(card)
+        s1 = PIISession(title="Linked", pipeline_card_id=card.id)
+        s2 = PIISession(title="Unlinked", pipeline_card_id=None)
+        store.add_session(s1)
+        store.add_session(s2)
+        result = store.list_sessions_by_card(card.id)
+        assert len(result) == 1
+        assert result[0].id == s1.id
+
+    def test_list_sessions_by_card_empty_for_unknown_card(self, store):
+        s = PIISession(title="Some Session", pipeline_card_id="other-card")
+        store.add_session(s)
+        assert store.list_sessions_by_card("nonexistent") == []
+
+    def test_list_sessions_by_card_multiple_sessions(self, store):
+        card = PipelineCard(title="Multi")
+        store.add_card(card)
+        sessions = [PIISession(title=f"S{i}", pipeline_card_id=card.id) for i in range(3)]
+        for s in sessions:
+            store.add_session(s)
+        result = store.list_sessions_by_card(card.id)
+        assert len(result) == 3
+
 
 # ── PipelineCard ──────────────────────────────────────────────────────────────
 
