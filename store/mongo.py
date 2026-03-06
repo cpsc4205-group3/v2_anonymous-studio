@@ -68,10 +68,16 @@ def _to_doc(obj) -> Dict[str, Any]:
 
 
 def _from_doc(cls, doc: Dict[str, Any]):
-    """Deserialize a MongoDB document back to a dataclass (``_id`` → ``id``)."""
+    """Deserialize a MongoDB document back to a dataclass (``_id`` → ``id``).
+
+    Extra keys stored in MongoDB (e.g. internal bookkeeping fields added by
+    update methods) are silently dropped so that schema additions to the store
+    layer never cause ``TypeError`` on old documents.
+    """
     d = dict(doc)
     d["id"] = str(d.pop("_id"))
-    return cls(**d)
+    known = {f.name for f in dataclasses.fields(cls)}
+    return cls(**{k: v for k, v in d.items() if k in known})
 
 
 _VALID_CARD_STATUSES = frozenset({"backlog", "in_progress", "review", "done"})
