@@ -444,6 +444,17 @@ Latest run (March 5, 2026):
 ## File Structure
 
 ```
+v2_anonymous-studio/
+├── app.py             Main Taipy GUI — all pages, state, callbacks
+├── core_config.py     taipy.core: DataNodes, Task, Scenario, Orchestrator
+├── tasks.py           run_pii_anonymization() — the actual pipeline function
+├── pii_engine.py      Presidio wrapper — analyze(), anonymize(), highlight_html()
+├── store.py           In-memory store for Kanban cards, appointments, audit log
+├── config.toml        Declarative config mirror (for Taipy Studio extension)
+├── requirements.txt
+└── docs/
+    ├── deployment.md  Deployment notes — online, offline, Docker, cloud
+    └── spacy.md       What spaCy is and how Anonymous Studio uses it
 anonymous_studio/
 ├── main.py          Taipy CLI entrypoint (`taipy run main.py`)
 ├── app.py           App state, callbacks, and runtime wiring
