@@ -317,9 +317,10 @@ class MemoryStore(StoreBase):
             PipelineCard(
                 id="card-007", title="Encrypt Operator Key Management",
                 description=(
-                    "Add UI field for AES encryption key on PII Text page. "
-                    "Support 128/192/256-bit keys. Store key in env var, not hardcoded. "
-                    "Enable DeanonymizeEngine decrypt round-trip."
+                    "Implement encrypt operator in pii_engine.py. Add 'encrypt' option "
+                    "to UI operator selector. Add UI field for AES encryption key "
+                    "(128/192/256-bit). Store key securely via env var (ANON_ENCRYPT_KEY). "
+                    "Enable DeanonymizeEngine decrypt round-trip for reversible anonymization."
                 ),
                 status="in_progress", priority="medium",
                 labels=["feature", "security"],

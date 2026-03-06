@@ -40,7 +40,7 @@ These features are **new in v2** and were not in the original PoC:
 
 | Feature | Status | What's Missing | Priority |
 |---------|--------|----------------|----------|
-| **Operator: encrypt** | ⚠️ **Partial** | UI field for AES key input. Backend supports encrypt/decrypt but key is hardcoded in demo. Need env var + UI field for 128/192/256-bit key management. | Medium |
+| **Operator: encrypt** | ⚠️ **Partial** | The Presidio library supports encrypt/decrypt operators, but v2 doesn't use them yet. Need to: (1) add encrypt option to UI operator selector, (2) add UI field for 128/192/256-bit AES key input, (3) implement OperatorConfig("encrypt", {"key": key}) in pii_engine.py, (4) store key securely via env var (not hardcoded). | Medium |
 
 ## ❌ Not Implemented (Backlog Stories)
 
@@ -102,8 +102,8 @@ When implementing a backlog story:
 
 ## Related Files
 
-- `.github/copilot-instructions.md` — Lines 782-807 (PoC Feature Parity Reference table)
+- `.github/copilot-instructions.md` — Lines 782+ (PoC Feature Parity Reference table)
 - `store/memory.py` — Lines 306-405 (Demo cards for backlog features)
-- `pii_engine.py` — Core PII detection engine
+- `pii_engine.py` — Core PII detection engine, operator implementations at lines 270-295
 - `app.py` — UI state and callbacks
 - `pages/definitions.py` — Taipy page markup
