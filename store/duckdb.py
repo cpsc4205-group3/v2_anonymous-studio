@@ -196,10 +196,17 @@ class DuckDBStore(StoreBase):
         if not card:
             return None
         old_status = card.status
+        now_ts = _now()
+        if "status" in kwargs:
+            new_status = kwargs.get("status")
+            if new_status == "done" and old_status != "done":
+                kwargs["done_at"] = kwargs.get("done_at") or now_ts
+            elif old_status == "done" and new_status != "done":
+                kwargs["done_at"] = None
         for k, v in kwargs.items():
             if hasattr(card, k):
                 setattr(card, k, v)
-        card.updated_at = _now()
+        card.updated_at = now_ts
         self._upsert("pipeline_cards", card.id, card.updated_at, _to_payload(card))
 
         if "status" in kwargs and kwargs.get("status") != old_status:
