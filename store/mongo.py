@@ -68,10 +68,16 @@ def _to_doc(obj) -> Dict[str, Any]:
 
 
 def _from_doc(cls, doc: Dict[str, Any]):
-    """Deserialize a MongoDB document back to a dataclass (``_id`` → ``id``)."""
+    """Deserialize a MongoDB document back to a dataclass (``_id`` → ``id``).
+
+    Extra keys stored in MongoDB (e.g. internal bookkeeping fields added by
+    update methods) are silently dropped so that schema additions to the store
+    layer never cause ``TypeError`` on old documents.
+    """
     d = dict(doc)
     d["id"] = str(d.pop("_id"))
-    return cls(**d)
+    known = {f.name for f in dataclasses.fields(cls)}
+    return cls(**{k: v for k, v in d.items() if k in known})
 
 
 _VALID_CARD_STATUSES = frozenset({"backlog", "in_progress", "review", "done"})
@@ -173,6 +179,18 @@ class MongoStore(StoreBase):
             {"pipeline_card_id": card_id}
         ).sort("created_at", DESCENDING)
         return [_from_doc(PIISession, d) for d in cursor]
+
+    def update_session(self, session_id: str, **kwargs) -> Optional[PIISession]:
+        doc = self._sessions.find_one({"_id": session_id})
+        if not doc:
+            return None
+        self._sessions.update_one({"_id": session_id}, {"$set": kwargs})
+        self._log(
+            "system", "session.update", "session", session_id,
+            f"Updated session: {', '.join(kwargs.keys())}",
+        )
+        updated = self._sessions.find_one({"_id": session_id})
+        return _from_doc(PIISession, updated) if updated else None
 
     # ── PipelineCard ──────────────────────────────────────────────────────────
 

@@ -183,6 +183,20 @@ class DuckDBStore(StoreBase):
         ).fetchall()
         return [_from_payload(PIISession, str(r[0])) for r in rows]
 
+    def update_session(self, session_id: str, **kwargs) -> Optional[PIISession]:
+        session = self.get_session(session_id)
+        if not session:
+            return None
+        for k, v in kwargs.items():
+            if hasattr(session, k):
+                setattr(session, k, v)
+        self._upsert("pii_sessions", session.id, session.created_at, _to_payload(session))
+        self._log(
+            "system", "session.update", "session", session_id,
+            f"Updated session: {', '.join(kwargs.keys())}",
+        )
+        return session
+
     # ── Pipeline cards ────────────────────────────────────────────────────────
 
     def add_card(self, card: PipelineCard) -> PipelineCard:

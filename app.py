@@ -600,12 +600,15 @@ card_id_edit   = ""
 card_title_f   = ""
 card_desc_f    = ""
 card_status_f  = "backlog"
+card_type_f    = "file"
+card_source_f  = ""
 card_assign_f  = ""
 card_priority_f = "medium"
 card_labels_f  = ""
 card_attest_f  = ""
 card_status_opts   = ["backlog", "in_progress", "review", "done"]
 card_priority_opts = ["low", "medium", "high", "critical"]
+card_type_opts     = ["file", "text", "database", "api"]
 card_session_f     = ""        # session_id selected in card form
 card_session_opts: List[str] = ["(none)"]  # populated on form open
 
@@ -4671,6 +4674,7 @@ def on_promote_primary(state):
 def on_card_new(state):
     state.card_id_edit = ""; state.card_title_f   = ""
     state.card_desc_f  = ""; state.card_status_f  = "backlog"
+    state.card_type_f  = "file"; state.card_source_f = ""
     state.card_assign_f = ""; state.card_priority_f = "medium"
     state.card_labels_f = ""; state.card_attest_f   = ""
     state.card_session_f = "(none)"
@@ -4689,16 +4693,18 @@ def on_card_save(state):
     new_session_id = None if sel == "(none)" else sel.split(" — ")[0].strip()
     if state.card_id_edit:
         existing = store.get_card(state.card_id_edit)
+        old_session_id = existing.session_id if existing else None
         store.update_card(state.card_id_edit,
                           title=state.card_title_f, description=state.card_desc_f,
                           status=state.card_status_f, assignee=state.card_assign_f,
                           priority=state.card_priority_f, labels=labels,
                           attestation=state.card_attest_f,
+                          card_type=state.card_type_f, data_source=state.card_source_f,
                           session_id=new_session_id)
         store.log_user_action("user", "pipeline.update", "card", state.card_id_edit,
                   f"Updated '{state.card_title_f}'",
                   severity=_priority_to_severity(state.card_priority_f))        # Write SESSION_ATTACHED only when session actually changed
-        if new_session_id and (not existing or existing.session_id != new_session_id):
+        if new_session_id and old_session_id != new_session_id:
             # Prevent duplicate: check no other card already holds this session
             all_cards = store.list_cards()
             already = any(
@@ -4711,18 +4717,21 @@ def on_card_save(state):
             store.log_user_action("user", "session.attach", "card", state.card_id_edit,
                       f"Session {new_session_id} attached to '{state.card_title_f}'",
                       severity=_priority_to_severity(state.card_priority_f))
+            store.update_session(new_session_id, pipeline_card_id=state.card_id_edit)
         notify(state, "success", "Card updated.")
     else:
         c = PipelineCard(title=state.card_title_f, description=state.card_desc_f,
                          status=state.card_status_f, assignee=state.card_assign_f,
                          priority=state.card_priority_f, labels=labels,
                          attestation=state.card_attest_f,
+                         card_type=state.card_type_f, data_source=state.card_source_f,
                          session_id=new_session_id)
         store.add_card(c)
         if new_session_id:
             store.log_user_action("user", "session.attach", "card", c.id,
                       f"Session {new_session_id} attached to '{state.card_title_f}'",
                       severity=_priority_to_severity(state.card_priority_f))
+            store.update_session(new_session_id, pipeline_card_id=c.id)
         notify(state, "success", f"Card '{state.card_title_f}' created.")
     state.card_form_open = False
     _refresh_pipeline(state)
@@ -4745,6 +4754,8 @@ def on_card_edit(state):
     state.card_desc_f    = c.description
     state.card_status_f  = c.status; state.card_assign_f  = c.assignee
     state.card_priority_f = c.priority
+    state.card_type_f    = c.card_type or "file"
+    state.card_source_f  = c.data_source or ""
     state.card_labels_f  = ", ".join(c.labels)
     state.card_attest_f  = c.attestation
     sessions = store.list_sessions()
@@ -4881,6 +4892,14 @@ def on_card_history(state):
         columns=["Time", "Action", "Actor", "Details"],
     )
     linked_sessions = store.list_sessions_by_card(cid)
+    # Also include session attached via card.session_id (manual attachment)
+    card = store.get_card(cid)
+    if card and card.session_id:
+        linked_ids = {s.id for s in linked_sessions}
+        if card.session_id not in linked_ids:
+            extra = store.get_session(card.session_id)
+            if extra:
+                linked_sessions.insert(0, extra)
     session_rows = [
         {
             "ID": s.id[:8],

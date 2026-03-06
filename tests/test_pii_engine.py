@@ -105,6 +105,104 @@ def test_highlight_md_merges_overlapping_entities_keeps_higher_score():
     assert "Person" not in result
 
 
+# ── Detection rationale helpers (pure-Python, no NLP stack required) ──────────
+
+class _MockExplanation:
+    """Minimal stand-in for Presidio AnalysisExplanation."""
+    def __init__(self, recognizer="", pattern_name="", original_score=None,
+                 textual_explanation=""):
+        self.recognizer = recognizer
+        self.pattern_name = pattern_name
+        self.original_score = original_score
+        self.textual_explanation = textual_explanation
+
+
+class _MockResult:
+    """Minimal stand-in for Presidio RecognizerResult."""
+    def __init__(self, entity_type, start, end, score, explanation=None):
+        self.entity_type = entity_type
+        self.start = start
+        self.end = end
+        self.score = score
+        self.analysis_explanation = explanation
+
+
+def test_build_rationale_no_explanation_returns_empty():
+    """When Presidio returns no analysis_explanation the rationale is empty."""
+    from pii_engine import PIIEngine
+    r = _MockResult("EMAIL_ADDRESS", 0, 15, 0.85, explanation=None)
+    assert PIIEngine._build_rationale(r) == ""
+
+
+def test_build_rationale_with_recognizer():
+    """Recognizer name appears in the rationale string."""
+    from pii_engine import PIIEngine
+    ex = _MockExplanation(recognizer="EmailRecognizer")
+    r = _MockResult("EMAIL_ADDRESS", 0, 15, 0.85, explanation=ex)
+    assert "EmailRecognizer" in PIIEngine._build_rationale(r)
+
+
+def test_build_rationale_with_pattern_name():
+    """Pattern name is included when present."""
+    from pii_engine import PIIEngine
+    ex = _MockExplanation(recognizer="EmailRecognizer", pattern_name="email_regex")
+    r = _MockResult("EMAIL_ADDRESS", 0, 15, 0.85, explanation=ex)
+    result = PIIEngine._build_rationale(r)
+    assert "pattern=email_regex" in result
+
+
+def test_build_rationale_includes_textual_explanation():
+    """Human-readable textual_explanation is appended."""
+    from pii_engine import PIIEngine
+    ex = _MockExplanation(recognizer="PhoneRecognizer",
+                          textual_explanation="Matched US phone pattern")
+    r = _MockResult("PHONE_NUMBER", 0, 12, 0.75, explanation=ex)
+    assert "Matched US phone pattern" in PIIEngine._build_rationale(r)
+
+
+def test_build_rationale_omits_redundant_original_score():
+    """raw_score is omitted when original_score equals the final score."""
+    from pii_engine import PIIEngine
+    ex = _MockExplanation(recognizer="Rec", original_score=0.85)
+    r = _MockResult("PERSON", 0, 5, 0.85, explanation=ex)
+    assert "raw_score" not in PIIEngine._build_rationale(r)
+
+
+def test_build_rationale_shows_raw_score_when_boosted():
+    """raw_score appears when context boosted the score above the original."""
+    from pii_engine import PIIEngine
+    ex = _MockExplanation(recognizer="Rec", original_score=0.60)
+    r = _MockResult("PERSON", 0, 5, 0.85, explanation=ex)
+    assert "raw_score=0.60" in PIIEngine._build_rationale(r)
+
+
+def test_entity_dict_includes_rationale_and_recognizer_keys():
+    """_entity_dict must always return 'rationale' and 'recognizer' keys."""
+    from pii_engine import PIIEngine
+    ex = _MockExplanation(recognizer="EmailRecognizer", pattern_name="email")
+    r = _MockResult("EMAIL_ADDRESS", 9, 24, 0.9, explanation=ex)
+    d = PIIEngine._entity_dict(r, "Contact: alice@test.com")
+    assert "rationale" in d
+    assert "recognizer" in d
+    assert d["recognizer"] == "EmailRecognizer"
+
+
+def test_entity_dict_text_extraction():
+    """_entity_dict extracts the matched text span from the source string."""
+    from pii_engine import PIIEngine
+    r = _MockResult("EMAIL_ADDRESS", 9, 23, 0.9, explanation=None)
+    d = PIIEngine._entity_dict(r, "Contact: alice@test.com here")
+    assert d["text"] == "alice@test.com"
+
+
+def test_entity_dict_rationale_empty_without_explanation():
+    from pii_engine import PIIEngine
+    r = _MockResult("CREDIT_CARD", 0, 16, 0.95, explanation=None)
+    d = PIIEngine._entity_dict(r, "4111111111111111")
+    assert d["rationale"] == ""
+    assert d["recognizer"] == ""
+
+
 # ── PIIEngine (requires presidio + spacy) ─────────────────────────────────────
 
 @pytest.fixture(scope="module")
@@ -209,3 +307,21 @@ def test_analyze_single_entity_type_excludes_others(engine):
     results = engine.analyze(text, entities=["US_SSN"])
     types = {r["entity_type"] for r in results}
     assert types <= {"US_SSN"}, f"Expected only US_SSN but got {types}"
+def test_analyze_results_contain_rationale_key(engine):
+    """Every entity dict returned by analyze() must expose a 'rationale' key
+    so the entity-evidence table can display detection explanations."""
+    results = engine.analyze("Contact us at test@example.com for help.",
+                             entities=["EMAIL_ADDRESS"])
+    assert results, "Expected at least one entity for a known email address"
+    for r in results:
+        assert "rationale" in r, f"Missing 'rationale' key in entity dict: {r}"
+        assert "recognizer" in r, f"Missing 'recognizer' key in entity dict: {r}"
+
+
+def test_analyze_results_rationale_is_string(engine):
+    """The 'rationale' value must be a plain string (never None)."""
+    results = engine.analyze("My SSN is 123-45-6789.", entities=["US_SSN"])
+    for r in results:
+        assert isinstance(r["rationale"], str), (
+            f"rationale should be str, got {type(r['rationale'])}"
+        )

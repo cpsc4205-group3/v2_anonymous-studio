@@ -101,6 +101,38 @@ class TestPIISession:
         result = store.list_sessions_by_card(card.id)
         assert len(result) == 3
 
+    def test_update_session_changes_field(self, store):
+        s = PIISession(title="Before")
+        store.add_session(s)
+        result = store.update_session(s.id, title="After")
+        assert result is not None
+        assert result.title == "After"
+        assert store.get_session(s.id).title == "After"
+
+    def test_update_session_links_to_card(self, store):
+        card = PipelineCard(title="My Card")
+        store.add_card(card)
+        s = PIISession(title="Unlinked")
+        store.add_session(s)
+        assert s.pipeline_card_id is None
+        store.update_session(s.id, pipeline_card_id=card.id)
+        updated = store.get_session(s.id)
+        assert updated.pipeline_card_id == card.id
+        assert len(store.list_sessions_by_card(card.id)) == 1
+
+    def test_update_session_missing_returns_none(self, store):
+        assert store.update_session("nonexistent", title="X") is None
+
+    def test_update_session_emits_audit_entry(self, store):
+        s = PIISession(title="Audited")
+        store.add_session(s)
+        store.update_session(s.id, pipeline_card_id="card-xyz")
+        audit = store.list_audit()
+        matches = [e for e in audit
+                   if e.action == "session.update" and e.resource_id == s.id]
+        assert len(matches) == 1
+        assert "pipeline_card_id" in matches[0].details
+
 
 # ── PipelineCard ──────────────────────────────────────────────────────────────
 

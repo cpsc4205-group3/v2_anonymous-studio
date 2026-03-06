@@ -36,7 +36,7 @@ pytest tests/
 make stress
 ```
 
-Max line length is **120**. Tests live in `tests/` with 11 test files covering store, PII engine, attestation, auth, synthetic text, progress snapshots, and Taipy smoke tests.
+Max line length is **120**. Tests live in `tests/` with 10 test files covering store, PII engine, attestation, auth, synthetic text, progress snapshots, and Taipy smoke tests.
 
 ---
 
@@ -58,7 +58,7 @@ PRs require 1 approving review and all status checks passing. Prefer *Squash and
 Modular Python app. No web framework — all UI is **Taipy GUI** (Markdown DSL with reactive state).
 
 ```
-anonymous_studio/
+anonymous-studio/
 ├── main.py              Taipy CLI entrypoint (`taipy run main.py`)
 ├── app.py               App state, callbacks, and runtime wiring
 ├── rest_main.py         REST API entrypoint (Taipy Rest + optional Auth0 JWT)
@@ -66,6 +66,8 @@ anonymous_studio/
 ├── tasks.py             run_pii_anonymization() — the batch pipeline function
 ├── pii_engine.py        Presidio Analyzer + Anonymizer wrapper; spaCy model resolution
 ├── scheduler.py         Background appointment scheduler (daemon thread)
+├── app.css              Custom CSS overrides (taipy-* class selectors)
+├── config.toml          Mirror of core_config.py for the Taipy Studio VS Code extension
 ├── pages/
 │   ├── __init__.py
 │   └── definitions.py   Taipy page markup strings (DASH, JOBS, PIPELINE, SCHEDULE, AUDIT, QT)
@@ -88,12 +90,21 @@ anonymous_studio/
 │   └── telemetry.py     Prometheus metrics exporter & Grafana integration
 ├── ui/
 │   └── theme.py         Plotly chart theme/styling
-├── tests/               pytest test suite (11 test files)
+├── images/              SVG icons used by the navigation menu
+├── tests/               pytest test suite (10 test files)
 ├── scripts/             Utility scripts (key generation, mongo check, stress)
 ├── deploy/
 │   ├── auth-proxy/      oauth2-proxy + nginx reverse proxy starter
 │   └── grafana/         Prometheus + Grafana stack
-└── requirements.txt
+├── docs/
+│   ├── deployment.md    Deployment notes
+│   └── spacy.md         spaCy usage guide
+├── requirements.txt
+├── Makefile             Stress tests, mongo-check, auth-proxy up/down
+├── pytest.ini           Pytest configuration
+├── .env.example         Sample environment variables
+├── .gitignore
+└── .taipyignore         Prevents Taipy's built-in server from exposing source files
 ```
 
 | Core File | Role |

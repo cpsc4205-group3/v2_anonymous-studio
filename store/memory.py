@@ -86,6 +86,19 @@ class MemoryStore(StoreBase):
             reverse=True,
         )
 
+    def update_session(self, session_id: str, **kwargs) -> Optional[PIISession]:
+        session = self._sessions.get(session_id)
+        if not session:
+            return None
+        for k, v in kwargs.items():
+            if hasattr(session, k):
+                setattr(session, k, v)
+        self._log(
+            "system", "session.update", "session", session_id,
+            f"Updated session: {', '.join(kwargs.keys())}",
+        )
+        return session
+
     # ── Pipeline Cards ─────────────────────────────────────────────────────────
 
     def add_card(self, card: PipelineCard) -> PipelineCard:
