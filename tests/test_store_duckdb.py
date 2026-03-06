@@ -23,6 +23,25 @@ def test_duckdb_store_card_roundtrip(tmp_path):
     assert s.stats()["pipeline_by_status"]["backlog"] == 1
 
 
+def test_duckdb_update_card_to_done_sets_done_at(tmp_path):
+    db_path = tmp_path / "done.duckdb"
+    s = DuckDBStore(path=str(db_path), seed=False)
+    card = PipelineCard(title="Finish me", status="review")
+    s.add_card(card)
+    updated = s.update_card(card.id, status="done")
+    assert updated.done_at is not None
+
+
+def test_duckdb_update_card_reopen_clears_done_at(tmp_path):
+    db_path = tmp_path / "reopen.duckdb"
+    s = DuckDBStore(path=str(db_path), seed=False)
+    card = PipelineCard(title="Reopen me", status="backlog")
+    s.add_card(card)
+    s.update_card(card.id, status="done")
+    reopened = s.update_card(card.id, status="review")
+    assert reopened.done_at is None
+
+
 def test_factory_returns_duckdb_store(tmp_path):
     db_path = tmp_path / "factory.duckdb"
     _reset_store()
