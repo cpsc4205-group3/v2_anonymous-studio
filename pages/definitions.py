@@ -461,6 +461,10 @@ Done <|{kanban_done_len}|text|class_name=kh-cnt|>
 <|{card_status_f}|selector|lov={card_status_opts}|dropdown=True|label=Status|>
 <|{card_priority_f}|selector|lov={card_priority_opts}|dropdown=True|label=Priority|>
 |>
+<|layout|columns=1 1|gap=12px|
+<|{card_type_f}|selector|lov={card_type_opts}|dropdown=True|label=Type|>
+<|{card_source_f}|input|label=Data Source|>
+|>
 <|{card_assign_f}|input|label=Assignee|class_name=fullwidth|>
 <|{card_labels_f}|input|label=Labels (comma-separated)|class_name=fullwidth|>
 <|{card_session_f}|selector|lov={card_session_opts}|dropdown=True|label=Link Session|class_name=fullwidth|>
