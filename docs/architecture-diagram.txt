@@ -1,0 +1,228 @@
+```
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                        ANONYMOUS STUDIO ARCHITECTURE                                │
+│                    Presidio + Taipy Integration Overview                           │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                            TAIPY GUI LAYER                                       ┃
+┃  ┌──────────────────────────────────────────────────────────────────────────┐   ┃
+┃  │  Navigation Menu (/)                                                     │   ┃
+┃  │  ├─ Dashboard      → Live metrics, pipeline overview, burndown          │   ┃
+┃  │  ├─ Analyze Text   → PII detection & anonymization UI                   │   ┃
+┃  │  ├─ Batch Jobs     → CSV/Excel upload & background processing           │   ┃
+┃  │  ├─ Pipeline       → Kanban board for workflow management               │   ┃
+┃  │  ├─ Schedule       → Review appointment scheduling                      │   ┃
+┃  │  ├─ Audit Log      → Immutable compliance audit trail                   │   ┃
+┃  │  └─ UI Demo        → Component gallery (dev/testing)                    │   ┃
+┃  └──────────────────────────────────────────────────────────────────────────┘   ┃
+┃                                                                                   ┃
+┃  Pages: Markdown DSL (pages/definitions.py)                                      ┃
+┃  State: Reactive module-level variables (app.py)                                 ┃
+┃  Navigation: navigate(state, page) + on_menu_action() callback                   ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                                       │
+                                       ▼
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                       APPLICATION LAYER (app.py)                                 ┃
+┃  ┌──────────────────────────────────────────────────────────────────────────┐   ┃
+┃  │  Callback Handlers                                                       │   ┃
+┃  │  ├─ on_qt_analyze()       → Single text PII detection                   │   ┃
+┃  │  ├─ on_qt_anonymize()     → Single text anonymization                   │   ┃
+┃  │  ├─ on_submit_job()       → Batch CSV/Excel job submission              │   ┃
+┃  │  ├─ on_card_save()        → Pipeline card creation                      │   ┃
+┃  │  ├─ on_card_attest()      → Digital signature attestation               │   ┃
+┃  │  └─ _refresh_*()          → Page-specific data refresh                  │   ┃
+┃  └──────────────────────────────────────────────────────────────────────────┘   ┃
+┃                                                                                   ┃
+┃  State Management: Global reactive vars (qt_*, job_*, card_*, dash_*, etc.)      ┃
+┃  Background Jobs: invoke_long_callback() for non-blocking processing              ┃
+┃  Result Formatting: highlight_md(), _format_anon_md(), chart builders             ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                                       │
+                                       ▼
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                      PII ENGINE (pii_engine.py)                                  ┃
+┃  ┌──────────────────────────────────────────────────────────────────────────┐   ┃
+┃  │  PIIEngine Class (Singleton Wrapper)                                     │   ┃
+┃  │  ├─ get_engine()          → Returns singleton instance                  │   ┃
+┃  │  ├─ analyze()             → Detect PII entities                         │   ┃
+┃  │  ├─ anonymize()           → Detect + transform PII                      │   ┃
+┃  │  ├─ highlight_html()      → Color-code detected PII spans               │   ┃
+┃  │  └─ _find_spacy_model()   → Auto-discover best available model          │   ┃
+┃  └──────────────────────────────────────────────────────────────────────────┘   ┃
+┃                                                                                   ┃
+┃  Initialization: Lazy (on first call) + background warmup thread                 ┃
+┃  spaCy Model: Auto-detection (lg→md→sm→trf→blank fallback)                       ┃
+┃  Caching: _OPS_CACHE (operator configs), _DENYLIST_PATTERN_CACHE                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                                       │
+                                       ▼
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃              MICROSOFT PRESIDIO (External Library)                               ┃
+┃  ┌──────────────────────────────────────────────────────────────────────────┐   ┃
+┃  │  AnalyzerEngine                                                          │   ┃
+┃  │  ├─ analyze(text, entities, language, score_threshold)                  │   ┃
+┃  │  ├─ RecognizerRegistry (17 entity types)                                │   ┃
+┃  │  └─ NlpEngine (spaCy for ML-based entities)                             │   ┃
+┃  └──────────────────────────────────────────────────────────────────────────┘   ┃
+┃  ┌──────────────────────────────────────────────────────────────────────────┐   ┃
+┃  │  AnonymizerEngine                                                        │   ┃
+┃  │  ├─ anonymize(text, analyzer_results, operators)                        │   ┃
+┃  │  ├─ Operators: replace, redact, mask, hash, encrypt, synthesize         │   ┃
+┃  │  └─ DeanonymizeEngine (reversible encryption)                           │   ┃
+┃  └──────────────────────────────────────────────────────────────────────────┘   ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                          BATCH PROCESSING PIPELINE                                  │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+   User Upload (CSV/Excel)
+          │
+          ▼
+   on_submit_job(state) ────┐
+          │                 │
+          │                 ▼
+          │         invoke_long_callback
+          │                 │
+          ▼                 ▼
+   tc.submit(scenario) ────> Background Worker Thread
+                             │
+                             ▼
+                   run_pii_anonymization(df, config)
+                             │
+                    ┌────────┴────────┐
+                    │  Process Chunks │
+                    │  (100 rows each)│
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────────┐
+                    │ For each text cell: │
+                    │ engine.anonymize()  │
+                    └────────┬────────────┘
+                             │
+                    ┌────────▼────────────┐
+                    │ Update Progress:    │
+                    │ PROGRESS_REGISTRY   │
+                    └────────┬────────────┘
+                             │
+                             ▼
+                   Return (anonymized_df, stats)
+                             │
+                             ▼
+                   Taipy DataNode (pickle)
+                             │
+                             ▼
+                   _bg_job_done(state, status, result)
+                             │
+                             ▼
+                   Update UI: job_queue_rows, job_result_df
+                             │
+                             ▼
+                   download(state, csv_bytes, "output.csv")
+
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                       SUPPORTED ENTITY TYPES (17 Total)                             │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════╦═════════════════════════════════════════════════════════╗
+║ Detection Method       ║ Entity Types                                            ║
+╠════════════════════════╬═════════════════════════════════════════════════════════╣
+║ Pattern/Regex          ║ EMAIL_ADDRESS, PHONE_NUMBER, CREDIT_CARD, US_SSN,      ║
+║ (Works without NLP)    ║ US_PASSPORT, US_DRIVER_LICENSE, US_ITIN, US_BANK_NUMBER║
+║                        ║ IP_ADDRESS, URL, IBAN_CODE, DATE_TIME, MEDICAL_LICENSE ║
+╠════════════════════════╬═════════════════════════════════════════════════════════╣
+║ ML/NER-based           ║ PERSON, LOCATION, NRP, ORGANIZATION                    ║
+║ (Requires spaCy model) ║ (Skipped if blank fallback model is used)              ║
+╚════════════════════════╩═════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                      ANONYMIZATION OPERATORS (5 Total)                              │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+replace    → "John Doe" → "<PERSON>"  (default: entity type label)
+redact     → "john@example.com" → ""  (complete removal)
+mask       → "4532-1234-5678-9010" → "****-****-****-9010"  (partial hide)
+hash       → "555-1234" → "a3f8b2..." (SHA-256 with salt)
+synthesize → "John Doe" → "Michael Chen" (Faker/LLM realistic fake data)
+
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                          KEY PERFORMANCE OPTIMIZATIONS                              │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+1. Operator Config Caching (_OPS_CACHE)
+   - Caches OperatorConfig objects per (operator, entities) key
+   - Prevents rebuilding 17+ configs per cell in batch jobs
+   - Result: ~2x speedup on large datasets (10k+ rows)
+
+2. Denylist Pattern Caching (_DENYLIST_PATTERN_CACHE)
+   - Compiles regex patterns once and reuses
+   - Avoids repeated Pattern compilation overhead
+
+3. Background Warmup Thread
+   - Loads Presidio engines at import time (non-blocking)
+   - Eliminates 1-2s first-call latency
+   - User sees instant response on first analysis
+
+4. Chunked Processing (Batch Jobs)
+   - Processes large CSVs in 100-row chunks
+   - Updates PROGRESS_REGISTRY after each chunk
+   - Prevents memory exhaustion on million-row datasets
+
+5. Lazy Engine Initialization
+   - Presidio engines only created on first use
+   - Fast app startup (imports take <1s)
+   - Defers expensive spaCy model loading
+
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              COMMON PITFALLS                                        │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+❌ Blank spaCy Model → PERSON/LOCATION/ORG never detected
+   ✅ Solution: python -m spacy download en_core_web_lg
+
+❌ Thread Safety → Concurrent users can crash Presidio engines
+   ✅ Solution: Use locks or per-user engine instances
+
+❌ Large Text Blocking UI → Multi-megabyte text blocks freeze interface
+   ✅ Solution: Use invoke_long_callback() for text >10KB
+
+❌ Random Hash Salt → Same PII produces different hashes each run
+   ✅ Solution: Pass explicit salt parameter for referential integrity
+
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                            DOCUMENTATION INDEX                                      │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+📄 docs/presidio-taipy-integration.md (764 lines)
+   - Presidio integration patterns and architecture
+   - Engine lifecycle and initialization
+   - Complete user flow diagrams
+   - Batch processing pipeline
+   - Performance optimizations
+   - Troubleshooting guide
+
+📄 docs/page-index.md (941 lines)
+   - Taipy page organization and routing
+   - All 7 main pages with state variables
+   - Navigation system and callbacks
+   - Page lifecycle and refresh logic
+   - Best practices and patterns
+   - Testing approaches
+
+📄 .github/copilot-instructions.md
+   - Full codebase reference
+   - All conventions and patterns
+   - Taipy DSL syntax guide
+   - Background job patterns
+
+📄 docs/spacy.md
+   - spaCy model usage and configuration
+   - Installation instructions
+
+📄 README.md
+   - Quick start guide
+   - Architecture overview
+   - Running the app
+```
