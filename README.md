@@ -132,6 +132,8 @@ echo "${ANON_MODE:-development}"
 | **Schedule** | Book and track PII review appointments, linked to pipeline cards |
 | **Audit Log** | Filterable immutable log of every system and user action |
 
+> **📊 Feature Status:** See [`docs/feature-parity.md`](docs/feature-parity.md) for a complete comparison of v2 vs. original PoC features, including what's implemented, what's in progress, and what's still in backlog.
+
 ---
 
 ## Getting Started

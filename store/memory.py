@@ -311,17 +311,18 @@ class MemoryStore(StoreBase):
                     "Pass allow_list= to analyzer.analyze() and use "
                     "ad_hoc_recognizers=[PatternRecognizer(deny_list=...)] for denylist."
                 ),
-                status="backlog", priority="medium",
+                status="done", priority="medium",
                 labels=["feature", "pii-engine"],
             ),
             PipelineCard(
                 id="card-007", title="Encrypt Operator Key Management",
                 description=(
-                    "Add UI field for AES encryption key on PII Text page. "
-                    "Support 128/192/256-bit keys. Store key in env var, not hardcoded. "
-                    "Enable DeanonymizeEngine decrypt round-trip."
+                    "Implement encrypt operator in pii_engine.py. Add 'encrypt' option "
+                    "to UI operator selector. Add UI field for AES encryption key "
+                    "(128/192/256-bit). Store key securely via env var (ANON_ENCRYPT_KEY). "
+                    "Enable DeanonymizeEngine decrypt round-trip for reversible anonymization."
                 ),
-                status="backlog", priority="medium",
+                status="in_progress", priority="medium",
                 labels=["feature", "security"],
             ),
             PipelineCard(
@@ -331,7 +332,7 @@ class MemoryStore(StoreBase):
                     "Configure ORG→ORGANIZATION NLP mapping with 0.4 confidence "
                     "multiplier to reduce false positives."
                 ),
-                status="backlog", priority="low",
+                status="done", priority="low",
                 labels=["feature", "pii-engine"],
             ),
             PipelineCard(
@@ -341,7 +342,7 @@ class MemoryStore(StoreBase):
                     "and pipeline CRUD using FastAPI. Add API key authentication "
                     "and Swagger documentation."
                 ),
-                status="backlog", priority="high",
+                status="done", priority="high",
                 labels=["feature", "api"],
             ),
             PipelineCard(
@@ -351,7 +352,7 @@ class MemoryStore(StoreBase):
                     "cards, appointments, and audit logs. Read MONGODB_URI from env. "
                     "Replace in-memory store for production use."
                 ),
-                status="backlog", assignee="Sakshi Patel", priority="critical",
+                status="done", assignee="Sakshi Patel", priority="critical",
                 labels=["feature", "infrastructure"],
             ),
             PipelineCard(
