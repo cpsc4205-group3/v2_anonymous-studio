@@ -4967,7 +4967,7 @@ def on_pipeline_export_csv(state):
         
         # Log the export action (actor="user" is consistent with single-tenant demo pattern)
         store.log_user_action(
-            "user", "pipeline.export", "pipeline", "all",
+            "user", "export.csv", "card", "bulk",
             f"Exported {len(rows)} pipeline cards as CSV"
         )
         notify(state, "success", f"Exported {len(rows)} cards.")
@@ -5031,7 +5031,7 @@ def on_pipeline_export_json(state):
         
         # Log the export action (actor="user" is consistent with single-tenant demo pattern)
         store.log_user_action(
-            "user", "pipeline.export", "pipeline", "all",
+            "user", "export.json", "card", "bulk",
             f"Exported {len(records)} pipeline cards as JSON"
         )
         notify(state, "success", f"Exported {len(records)} cards.")
@@ -5089,7 +5089,7 @@ def on_pipeline_export_filtered_csv(state):
         
         # Log the export action (actor="user" is consistent with single-tenant demo pattern)
         store.log_user_action(
-            "user", "pipeline.export", "pipeline", status_filter or "all",
+            "user", "export.csv.filtered", "card", status_filter or "bulk",
             f"Exported {len(rows)} pipeline cards (status={status_filter or 'all'}) as CSV"
         )
         notify(state, "success", f"Exported {len(rows)} cards ({status_filter or 'all'}).")
@@ -5204,7 +5204,7 @@ def on_audit_export_csv(state):
         
         # Log the export action (actor="user" is consistent with single-tenant demo pattern)
         store.log_user_action(
-            "user", "audit.export", "audit", "all",
+            "user", "export.csv", "audit", "bulk",
             f"Exported {len(state.audit_table)} audit entries as CSV"
         )
         notify(state, "success", f"Exported {len(state.audit_table)} entries.")
@@ -5232,7 +5232,7 @@ def on_audit_export_json(state):
         
         # Log the export action (actor="user" is consistent with single-tenant demo pattern)
         store.log_user_action(
-            "user", "audit.export", "audit", "all",
+            "user", "export.json", "audit", "bulk",
             f"Exported {len(state.audit_table)} audit entries as JSON"
         )
         notify(state, "success", f"Exported {len(state.audit_table)} entries.")
