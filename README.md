@@ -130,7 +130,9 @@ echo "${ANON_MODE:-development}"
 | **Upload & Jobs** | Submit large CSV/Excel as background jobs; progress bar; result preview + download |
 | **Pipeline** | Kanban board (Backlog → In Progress → Review → Done) linked to job status |
 | **Schedule** | Book and track PII review appointments, linked to pipeline cards |
-| **Audit Log** | Filterable immutable log of every system and user action |
+| **Audit Log** | Filterable immutable log of every system and user action — **Export to CSV/JSON** |
+
+**New:** Export audit logs and pipeline history in CSV or JSON formats for compliance documentation. See [Export Documentation](docs/export-functionality.md).
 
 ---
 
