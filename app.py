@@ -600,12 +600,15 @@ card_id_edit   = ""
 card_title_f   = ""
 card_desc_f    = ""
 card_status_f  = "backlog"
+card_type_f    = "file"
+card_source_f  = ""
 card_assign_f  = ""
 card_priority_f = "medium"
 card_labels_f  = ""
 card_attest_f  = ""
 card_status_opts   = ["backlog", "in_progress", "review", "done"]
 card_priority_opts = ["low", "medium", "high", "critical"]
+card_type_opts     = ["file", "text", "database", "api"]
 card_session_f     = ""        # session_id selected in card form
 card_session_opts: List[str] = ["(none)"]  # populated on form open
 
@@ -4671,6 +4674,7 @@ def on_promote_primary(state):
 def on_card_new(state):
     state.card_id_edit = ""; state.card_title_f   = ""
     state.card_desc_f  = ""; state.card_status_f  = "backlog"
+    state.card_type_f  = "file"; state.card_source_f = ""
     state.card_assign_f = ""; state.card_priority_f = "medium"
     state.card_labels_f = ""; state.card_attest_f   = ""
     state.card_session_f = "(none)"
@@ -4695,6 +4699,7 @@ def on_card_save(state):
                           status=state.card_status_f, assignee=state.card_assign_f,
                           priority=state.card_priority_f, labels=labels,
                           attestation=state.card_attest_f,
+                          card_type=state.card_type_f, data_source=state.card_source_f,
                           session_id=new_session_id)
         store.log_user_action("user", "pipeline.update", "card", state.card_id_edit,
                   f"Updated '{state.card_title_f}'",
@@ -4718,6 +4723,7 @@ def on_card_save(state):
                          status=state.card_status_f, assignee=state.card_assign_f,
                          priority=state.card_priority_f, labels=labels,
                          attestation=state.card_attest_f,
+                         card_type=state.card_type_f, data_source=state.card_source_f,
                          session_id=new_session_id)
         store.add_card(c)
         if new_session_id:
@@ -4746,6 +4752,8 @@ def on_card_edit(state):
     state.card_desc_f    = c.description
     state.card_status_f  = c.status; state.card_assign_f  = c.assignee
     state.card_priority_f = c.priority
+    state.card_type_f    = c.card_type or "file"
+    state.card_source_f  = c.data_source or ""
     state.card_labels_f  = ", ".join(c.labels)
     state.card_attest_f  = c.attestation
     sessions = store.list_sessions()

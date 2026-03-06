@@ -91,6 +91,8 @@ class PipelineCard:
     title: str                   = "New Task"
     description: str             = ""
     status: str                  = "backlog"   # backlog|in_progress|review|done
+    card_type: str               = "file"      # file|text|database|api
+    data_source: str             = ""          # free-text description of the data origin
     assignee: str                = ""
     priority: str                = "medium"    # low|medium|high|critical
     labels: List[str]            = field(default_factory=list)
