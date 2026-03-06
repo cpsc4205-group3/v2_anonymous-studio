@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Project Board
+    url: https://github.com/orgs/cpsc4205-group3/projects
+    about: View the project board for sprint tracking and issue status

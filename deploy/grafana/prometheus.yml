@@ -1,0 +1,16 @@
+# Prometheus scrape configuration for Anonymous Studio
+#
+# Edit `targets` if the app runs on a different host or port.
+# ANON_METRICS_PORT must match the port configured in your .env.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: anonymous_studio
+    static_configs:
+      - targets:
+          - host.docker.internal:9100   # adjust if app runs elsewhere
+        labels:
+          app: anonymous_studio

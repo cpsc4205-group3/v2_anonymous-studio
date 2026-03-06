@@ -13,6 +13,10 @@ mode = "development"
 # (or use env var ANON_MODE=standalone)
 
 [DATA_NODE.raw_input]
+# In-memory DataNode: raw PII never written to disk (development mode only).
+# core_config.py uses Config.configure_in_memory_data_node() at runtime.
+# TOML format has no "in_memory" storage_type keyword; "pickle" is shown here
+# only so the Taipy VS Code extension can parse the pipeline graph.
 storage_type = "pickle"
 scope = "SCENARIO"
 

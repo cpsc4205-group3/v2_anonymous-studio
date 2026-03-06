@@ -1,0 +1,7 @@
+# Code owners — these users are automatically requested for review
+# on pull requests that modify matching paths.
+#
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: require review from at least one team member for all files
+* @cpsc4205-group3/maintainers

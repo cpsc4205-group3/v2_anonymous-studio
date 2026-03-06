@@ -17,7 +17,8 @@ To force a specific model:
   export SPACY_MODEL=en_core_web_lg   # or any installed model name / local path
 """
 from __future__ import annotations
-import os, warnings, logging
+import os, re, warnings, logging, tempfile
+from functools import lru_cache
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
 
@@ -38,6 +39,20 @@ _PREFERRED_MODELS = [
     "en_core_web_sm",
     "en_core_web_trf",
 ]
+_AUTO_MODEL_OPTION = "auto"
+_BLANK_MODEL_OPTION = "blank"
+
+
+def _blank_fallback_model_path() -> str:
+    blank_path = os.environ.get(
+        "ANON_SPACY_BLANK_PATH",
+        os.path.join(tempfile.gettempdir(), "anon_studio_blank_en"),
+    )
+    if not os.path.exists(blank_path):
+        _nlp = spacy.blank("en")
+        _nlp.meta.update({"name": "en_blank", "version": "3.0.0", "lang": "en"})
+        _nlp.to_disk(blank_path)
+    return blank_path
 
 def _find_spacy_model() -> tuple[str, bool]:
     """
@@ -48,6 +63,8 @@ def _find_spacy_model() -> tuple[str, bool]:
     # 1. Explicit override via environment variable
     env_model = os.environ.get("SPACY_MODEL", "").strip()
     if env_model:
+        if env_model.lower() in {_BLANK_MODEL_OPTION, "en_blank", "blank_en"}:
+            return _blank_fallback_model_path(), False
         try:
             spacy.load(env_model)
             logging.getLogger(__name__).info(
@@ -83,11 +100,7 @@ def _find_spacy_model() -> tuple[str, bool]:
             continue
 
     # 4. Blank fallback — build a minimal model Presidio can use as a scaffold
-    blank_path = "/tmp/anon_studio_blank_en"
-    if not os.path.exists(blank_path):
-        _nlp = spacy.blank("en")
-        _nlp.meta.update({"name": "en_blank", "version": "3.0.0", "lang": "en"})
-        _nlp.to_disk(blank_path)
+    blank_path = _blank_fallback_model_path()
     logging.getLogger(__name__).warning(
         "spaCy: no trained model found — using blank fallback. "
         "PERSON / LOCATION / ORG will NOT be detected. "
@@ -96,16 +109,79 @@ def _find_spacy_model() -> tuple[str, bool]:
     return blank_path, False
 
 
-_SPACY_MODEL, _HAS_NER = _find_spacy_model()
+def _build_spacy_status(model_name: str, has_ner: bool) -> str:
+    return (
+        f"✓ Full NER model: {model_name}"
+        if has_ner else
+        "▲ Blank model (regex only) - install en_core_web_lg for full detection"
+    )
 
-# Expose for other modules / the GUI to surface to users
-SPACY_MODEL_NAME   = _SPACY_MODEL
-SPACY_HAS_NER      = _HAS_NER
-SPACY_MODEL_STATUS = (
-    f"✅ Full NER model: {_SPACY_MODEL}"
-    if _HAS_NER else
-    "⚠️  Blank model (regex only) — install en_core_web_lg for full detection"
-)
+
+def _apply_spacy_runtime(model_name: str, has_ner: bool) -> None:
+    global _SPACY_MODEL, _HAS_NER, SPACY_MODEL_NAME, SPACY_HAS_NER, SPACY_MODEL_STATUS
+    _SPACY_MODEL = model_name
+    _HAS_NER = has_ner
+    SPACY_MODEL_NAME = model_name
+    SPACY_HAS_NER = has_ner
+    SPACY_MODEL_STATUS = _build_spacy_status(model_name, has_ner)
+
+
+_SPACY_MODEL, _HAS_NER = _find_spacy_model()
+SPACY_MODEL_NAME = ""
+SPACY_HAS_NER = False
+SPACY_MODEL_STATUS = ""
+_apply_spacy_runtime(_SPACY_MODEL, _HAS_NER)
+
+
+def get_spacy_model_choice() -> str:
+    env_model = (os.environ.get("SPACY_MODEL") or "").strip()
+    if not env_model:
+        return _AUTO_MODEL_OPTION
+    if env_model.lower() in {_BLANK_MODEL_OPTION, "en_blank", "blank_en"}:
+        return _BLANK_MODEL_OPTION
+    return env_model
+
+
+@lru_cache(maxsize=1)
+def get_spacy_model_options() -> List[str]:
+    options = [_AUTO_MODEL_OPTION, *_PREFERRED_MODELS]
+    try:
+        installed = sorted(set(spacy.util.get_installed_models()))
+    except Exception:
+        installed = []
+    for model_name in installed:
+        if model_name.startswith("en_core_") and model_name not in options:
+            options.append(model_name)
+    if _BLANK_MODEL_OPTION not in options:
+        options.append(_BLANK_MODEL_OPTION)
+    current_choice = get_spacy_model_choice()
+    if current_choice and current_choice not in options:
+        options.insert(1, current_choice)
+    return options
+
+
+def get_spacy_model_status() -> str:
+    return SPACY_MODEL_STATUS
+
+
+def set_spacy_model(choice: str) -> Tuple[str, bool, str]:
+    global _engine
+
+    selected = (choice or _AUTO_MODEL_OPTION).strip()
+    if not selected:
+        selected = _AUTO_MODEL_OPTION
+
+    if selected == _AUTO_MODEL_OPTION:
+        os.environ.pop("SPACY_MODEL", None)
+    elif selected == _BLANK_MODEL_OPTION:
+        os.environ["SPACY_MODEL"] = _BLANK_MODEL_OPTION
+    else:
+        os.environ["SPACY_MODEL"] = selected
+
+    model_name, has_ner = _find_spacy_model()
+    _apply_spacy_runtime(model_name, has_ner)
+    _engine = None
+    return model_name, has_ner, SPACY_MODEL_STATUS
 
 from presidio_analyzer import AnalyzerEngine, RecognizerResult
 from presidio_analyzer.nlp_engine import SpacyNlpEngine, NerModelConfiguration
@@ -118,7 +194,7 @@ ALL_ENTITIES = [
     "EMAIL_ADDRESS", "PHONE_NUMBER", "CREDIT_CARD", "US_SSN",
     "US_PASSPORT", "US_DRIVER_LICENSE", "US_ITIN", "US_BANK_NUMBER",
     "IP_ADDRESS", "URL", "IBAN_CODE", "DATE_TIME",
-    "LOCATION", "PERSON", "NRP", "MEDICAL_LICENSE",
+    "LOCATION", "PERSON", "NRP", "MEDICAL_LICENSE", "ORGANIZATION",
 ]
 
 ENTITY_COLORS = {
@@ -138,6 +214,7 @@ ENTITY_COLORS = {
     "PERSON":            "#FFA726",
     "NRP":               "#AB47BC",
     "MEDICAL_LICENSE":   "#EC407A",
+    "ORGANIZATION":      "#26C6DA",
 }
 
 OPERATORS       = ["replace", "redact", "mask", "hash"]
@@ -147,6 +224,15 @@ OPERATOR_LABELS = {
     "mask":    "Mask     — overwrite with *** characters",
     "hash":    "Hash     — SHA-256 one-way hash",
 }
+
+CUSTOM_DENYLIST_ENTITY = "CUSTOM_DENYLIST"
+
+# Module-level cache for compiled denylist regex patterns (term → compiled pattern).
+_DENYLIST_PATTERN_CACHE: Dict[str, re.Pattern] = {}
+
+# Module-level cache for OperatorConfig dicts — keyed by (operator, sorted entities tuple).
+# Saves rebuilding 17+ OperatorConfig objects on every anonymize() call during batch jobs.
+_OPS_CACHE: Dict[tuple, Dict] = {}
 
 
 # ── Result dataclass ──────────────────────────────────────────────────────────
@@ -167,6 +253,50 @@ class AnalysisResult:
         if not self.entity_counts:
             return "No PII detected"
         return ", ".join(f"{v}× {k}" for k, v in self.entity_counts.items())
+
+
+def _get_ops(operator: str, entities_key: tuple) -> Dict:
+    """Return (and cache) the OperatorConfig dict for a given operator + entity set.
+
+    Called on every anonymize() invocation. Using a module-level dict avoids
+    reconstructing 17+ OperatorConfig objects for every cell in a batch job.
+    """
+    cache_key = (operator, entities_key)
+    cached = _OPS_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+    ops: Dict = {}
+    for e in entities_key:
+        if operator == "replace":
+            ops[e] = OperatorConfig("replace", {"new_value": f"<{e}>"})
+        elif operator == "redact":
+            ops[e] = OperatorConfig("redact", {})
+        elif operator == "mask":
+            ops[e] = OperatorConfig("mask", {"type": "mask",
+                                              "masking_char": "*",
+                                              "chars_to_mask": 20,
+                                              "from_end": False})
+        elif operator == "hash":
+            ops[e] = OperatorConfig("hash", {"hash_type": "sha256",
+                                              "salt": "anonymous-studio"})
+        else:
+            ops[e] = OperatorConfig("replace", {"new_value": f"<{e}>"})
+    # Ensure denylist-only detections can always be anonymized.
+    if CUSTOM_DENYLIST_ENTITY not in ops:
+        if operator == "replace":
+            ops[CUSTOM_DENYLIST_ENTITY] = OperatorConfig("replace", {"new_value": "<CUSTOM_DENYLIST>"})
+        elif operator == "redact":
+            ops[CUSTOM_DENYLIST_ENTITY] = OperatorConfig("redact", {})
+        elif operator == "mask":
+            ops[CUSTOM_DENYLIST_ENTITY] = OperatorConfig(
+                "mask", {"type": "mask", "masking_char": "*", "chars_to_mask": 20, "from_end": False},
+            )
+        else:
+            ops[CUSTOM_DENYLIST_ENTITY] = OperatorConfig(
+                "hash", {"hash_type": "sha256", "salt": "anonymous-studio"},
+            )
+    _OPS_CACHE[cache_key] = ops
+    return ops
 
 
 # ── Engine ────────────────────────────────────────────────────────────────────
@@ -202,8 +332,66 @@ class PIIEngine:
         self._ready = True
 
     # ── Public API ────────────────────────────────────────────────────────────
+    @staticmethod
+    def _norm_terms(terms: Optional[List[str]]) -> List[str]:
+        if not terms:
+            return []
+        # Preserve order while removing blanks/duplicates.
+        seen = set()
+        cleaned: List[str] = []
+        for t in terms:
+            v = (t or "").strip()
+            if not v:
+                continue
+            key = v.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            cleaned.append(v)
+        return cleaned
+
+    @staticmethod
+    def _apply_allowlist(raw: List[RecognizerResult], text: str, allowlist: List[str]) -> List[RecognizerResult]:
+        if not allowlist:
+            return raw
+        allowed = {t.lower() for t in allowlist}
+        return [r for r in raw if text[r.start:r.end].strip().lower() not in allowed]
+
+    @staticmethod
+    def _denylist_results(text: str, denylist: List[str]) -> List[RecognizerResult]:
+        out: List[RecognizerResult] = []
+        for term in denylist:
+            pat = _DENYLIST_PATTERN_CACHE.get(term)
+            if pat is None:
+                pat = re.compile(rf"(?<!\w){re.escape(term)}(?!\w)", flags=re.IGNORECASE)
+                _DENYLIST_PATTERN_CACHE[term] = pat
+            for m in pat.finditer(text):
+                out.append(
+                    RecognizerResult(
+                        entity_type=CUSTOM_DENYLIST_ENTITY,
+                        start=m.start(),
+                        end=m.end(),
+                        score=1.0,
+                    )
+                )
+        return out
+
+    @staticmethod
+    def _merge_results(raw: List[RecognizerResult], extras: List[RecognizerResult]) -> List[RecognizerResult]:
+        if not extras:
+            return raw
+        seen = {(r.entity_type, r.start, r.end) for r in raw}
+        merged = list(raw)
+        for r in extras:
+            key = (r.entity_type, r.start, r.end)
+            if key not in seen:
+                seen.add(key)
+                merged.append(r)
+        return merged
+
     def analyze(self, text: str, entities: List[str] = None,
-                threshold: float = 0.35) -> List[Dict]:
+                threshold: float = 0.35, allowlist: Optional[List[str]] = None,
+                denylist: Optional[List[str]] = None) -> List[Dict]:
         self._init()
         if not text or not text.strip():
             return []
@@ -212,13 +400,23 @@ class PIIEngine:
             entities=entities or ALL_ENTITIES,
             language="en",
             score_threshold=threshold,
+            return_decision_process=True,
         )
+        allow = self._norm_terms(allowlist)
+        deny = self._norm_terms(denylist)
+        raw = self._apply_allowlist(raw, text, allow)
+        raw = self._merge_results(raw, self._denylist_results(text, deny))
         return [{"entity_type": r.entity_type, "start": r.start, "end": r.end,
-                 "score": round(r.score, 3), "text": text[r.start:r.end]}
+                 "score": round(r.score, 3), "text": text[r.start:r.end],
+                 "recognizer": (r.analysis_explanation.recognizer
+                                if r.analysis_explanation else "")}
                 for r in raw]
 
     def anonymize(self, text: str, entities: List[str] = None,
-                  operator: str = "replace", threshold: float = 0.35) -> AnalysisResult:
+                  operator: str = "replace", threshold: float = 0.35,
+                  allowlist: Optional[List[str]] = None,
+                  denylist: Optional[List[str]] = None,
+                  fast: bool = False) -> AnalysisResult:
         self._init()
         if not text or not text.strip():
             return AnalysisResult(text, text, [], {}, operator)
@@ -226,27 +424,20 @@ class PIIEngine:
         raw_results: List[RecognizerResult] = self._analyzer.analyze(
             text=text, entities=entities or ALL_ENTITIES,
             language="en", score_threshold=threshold,
+            return_decision_process=not fast,
         )
+        allow = self._norm_terms(allowlist)
+        deny = self._norm_terms(denylist)
+        raw_results = self._apply_allowlist(raw_results, text, allow)
+        raw_results = self._merge_results(raw_results, self._denylist_results(text, deny))
         detected = [{"entity_type": r.entity_type, "start": r.start,
                      "end": r.end, "score": round(r.score, 3),
-                     "text": text[r.start:r.end]}
+                     "text": text[r.start:r.end],
+                     "recognizer": (r.analysis_explanation.recognizer
+                                    if r.analysis_explanation else "")}
                     for r in raw_results]
 
-        ops = {}
-        for e in (entities or ALL_ENTITIES):
-            if operator == "replace":
-                ops[e] = OperatorConfig("replace", {"new_value": f"<{e}>"})
-            elif operator == "redact":
-                ops[e] = OperatorConfig("redact", {})
-            elif operator == "mask":
-                ops[e] = OperatorConfig("mask", {"type": "mask",
-                                                  "masking_char": "*",
-                                                  "chars_to_mask": 20,
-                                                  "from_end": False})
-            elif operator == "hash":
-                ops[e] = OperatorConfig("hash", {"hash_type": "sha256"})
-            else:
-                ops[e] = OperatorConfig("replace", {"new_value": f"<{e}>"})
+        ops = _get_ops(operator, tuple(sorted(entities or ALL_ENTITIES)))
 
         try:
             anon_text = self._anonymizer.anonymize(
@@ -295,7 +486,13 @@ class PIIEngine:
 
 
 def highlight_md(text: str, entities: list) -> str:
-    """Markdown version of PII highlights using inline code spans."""
+    """Markdown version of PII highlights using inline code spans.
+
+    Plain-text segments are escaped so that user-supplied content
+    containing Markdown metacharacters (e.g. ``**``, ``<script>``) cannot
+    alter the document structure or inject HTML.
+    """
+    import html as _html
     if not entities:
         return "*No PII detected.*"
     merged, cursor = [], 0
@@ -308,13 +505,15 @@ def highlight_md(text: str, entities: list) -> str:
     parts = []
     for ent in merged:
         if ent["start"] > cursor:
-            parts.append(text[cursor:ent["start"]])
+            parts.append(_html.escape(text[cursor:ent["start"]]))
         label = ent["entity_type"].replace("_", " ").title()
-        pct   = int(ent["score"] * 100)
-        parts.append(f"`{ent['text']}` *({label} {pct}%)*")
+        ent_text = _html.escape(str(ent.get("text", text[ent["start"]:ent["end"]])))
+        score = ent.get("score")
+        score_suffix = f" · {float(score):.0%}" if isinstance(score, (int, float)) else ""
+        parts.append(f"`{ent_text}` *({label}{score_suffix})*")
         cursor = ent["end"]
     if cursor < len(text):
-        parts.append(text[cursor:])
+        parts.append(_html.escape(text[cursor:]))
     return "".join(parts)
 
 
@@ -331,3 +530,15 @@ def get_engine() -> PIIEngine:
     if _engine is None:
         _engine = PIIEngine()
     return _engine
+
+
+import threading as _threading
+
+def _warmup() -> None:
+    """Pre-load spaCy + Presidio at import time so the first user call is instant."""
+    try:
+        get_engine()._init()
+    except Exception:
+        pass
+
+_threading.Thread(target=_warmup, daemon=True, name="pii-engine-warmup").start()

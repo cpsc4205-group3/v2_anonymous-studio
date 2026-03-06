@@ -1,0 +1,107 @@
+# =============================================================================
+# GitHub Labels Configuration
+# =============================================================================
+# Apply with:  https://github.com/marketplace/actions/label-syncer
+#              or manually via Settings → Labels
+# =============================================================================
+
+# ── Sprint labels ────────────────────────────────────────────────────────────
+- name: sprint-1
+  color: "1d76db"
+  description: "Sprint 1 work item"
+- name: sprint-2
+  color: "0e8a16"
+  description: "Sprint 2 work item"
+- name: sprint-3
+  color: "5319e7"
+  description: "Sprint 3 work item"
+
+# ── Priority (MoSCoW) ───────────────────────────────────────────────────────
+- name: must-have
+  color: "b60205"
+  description: "Must-have requirement"
+- name: should-have
+  color: "ff9f1c"
+  description: "Should-have requirement"
+- name: could-have
+  color: "fef65b"
+  description: "Could-have requirement"
+- name: wont-have
+  color: "eeeeee"
+  description: "Won't-have this sprint"
+
+# ── Urgency ──────────────────────────────────────────────────────────────────
+- name: P0
+  color: "b60205"
+  description: "Critical priority — blocks the sprint"
+- name: P1
+  color: "d93f0b"
+  description: "High priority — needed for sprint goal"
+- name: P2
+  color: "fbca04"
+  description: "Medium priority — nice to complete"
+- name: P3
+  color: "c5def5"
+  description: "Low priority — stretch goal"
+
+# ── Type ─────────────────────────────────────────────────────────────────────
+- name: bug
+  color: "d73a4a"
+  description: "Something isn't working"
+- name: feature
+  color: "a2eeef"
+  description: "New feature or request"
+- name: user-story
+  color: "0075ca"
+  description: "User story for sprint planning"
+- name: task
+  color: "d4c5f9"
+  description: "Sub-task or implementation work"
+- name: documentation
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+- name: testing
+  color: "bfd4f2"
+  description: "Test-related work"
+
+# ── Status ───────────────────────────────────────────────────────────────────
+- name: blocked
+  color: "b60205"
+  description: "Blocked by another issue or dependency"
+- name: needs-review
+  color: "fbca04"
+  description: "Ready for code review"
+- name: in-progress
+  color: "0e8a16"
+  description: "Currently being worked on"
+
+# ── Area ─────────────────────────────────────────────────────────────────────
+- name: backend
+  color: "5319e7"
+  description: "Backend / API work"
+- name: frontend
+  color: "1d76db"
+  description: "Frontend / UI work"
+- name: database
+  color: "006b75"
+  description: "Database schema or queries"
+- name: pii-detection
+  color: "e4e669"
+  description: "PII detection and anonymization"
+- name: devops
+  color: "bfdadc"
+  description: "CI/CD, Docker, or infrastructure"
+
+# ── Dependabot ───────────────────────────────────────────────────────────────
+- name: dependencies
+  color: "0366d6"
+  description: "Pull requests that update a dependency file"
+- name: github-actions
+  color: "000000"
+  description: "Pull requests that update GitHub Actions"
+- name: python
+  color: "3572a5"
+  description: "Pull requests that update Python code"
+- name: docker
+  color: "2496ed"
+  description: "Pull requests that update Docker configuration"

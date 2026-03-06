@@ -1,0 +1,50 @@
+# Anonymous Studio — Local Monitoring Stack
+#
+# Starts Prometheus + Grafana alongside the app so you can visualise job
+# metrics with zero additional configuration.
+#
+# Prerequisites
+# -------------
+#   1. Set ANON_METRICS_PORT=9100 in your .env (or export it in your shell).
+#   2. Make sure Anonymous Studio is running on the same host/network.
+#
+# Usage
+# -----
+#   cd deploy/grafana
+#   docker compose up -d
+#
+# Then open:
+#   Grafana   →  http://localhost:3000   (admin / admin)
+#   Prometheus→  http://localhost:9090
+#
+# The "Anonymous Studio" dashboard is provisioned automatically.
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: anon_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana-oss:11.1.0
+    container_name: anon_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  grafana_data:

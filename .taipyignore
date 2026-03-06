@@ -1,0 +1,29 @@
+# Anonymous Studio — Taipy server file protection
+# Syntax identical to .gitignore — matched paths return HTTP 404.
+# https://docs.taipy.io/en/latest/userman/run-deploy/run/protect_files/
+
+# ── Python source ──────────────────────────────────────────────────────────────
+*.py
+*.pyc
+__pycache__/
+
+# ── Config & secrets ───────────────────────────────────────────────────────────
+*.toml
+*.cfg
+*.ini
+*.env
+.env*
+
+# ── Project metadata ───────────────────────────────────────────────────────────
+requirements.txt
+*.md
+*.txt
+
+# ── Internal data & stores ─────────────────────────────────────────────────────
+store/
+user_data/
+tests/
+
+# ── Taipy core storage ─────────────────────────────────────────────────────────
+.data/
+.taipy/

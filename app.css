@@ -1,0 +1,1018 @@
+/* Anonymous Studio — app.css
+   Taipy auto-loads this file (same name as the entry module).
+   https://docs.taipy.io/en/latest/userman/gui/styling/
+*/
+
+/* ── Design tokens ── */
+:root {
+  color-scheme: dark;
+  --bg0:#17191D;
+  --bg1:#1D2025;
+  --bg2:#252930;
+  --bdr:#323841;
+  --bdr2:#3D4652;
+  --acc:#6F86B9;
+  --blu:#6F86B9;
+  --blu-bg:#6F86B926;
+  --grn:#79A06F;
+  --grn-bg:#79A06F1F;
+  --red:#D06A64;
+  --red-bg:#D06A641F;
+  --amb:#C8A55B;
+  --amb-bg:#C8A55B1F;
+  --pur:#C58A5A;
+  --pur-bg:#C58A5A1F;
+  --txt:#D7DBE3;
+  --txt2:#BCC3CF;
+  --mut:#9199A8;
+  --mut2:#697282;
+  --info-brd:#6F86B9;
+  --ok-brd:#79A06F;
+  --warn-brd:#C8A55B;
+  --err-brd:#D06A64;
+  --pur-brd:#C58A5A;
+  --info-brd-weak:#6F86B940;
+  --err-brd-weak:#D06A6440;
+  --anon-bg:#1A211B;
+  --anon-fg:#C4CEC4;
+  --anon-tag:#7FBF7F;
+  --anon-tag-bg:#7FBF7F24;
+  --anon-tag-brd:#7FBF7F55;
+}
+
+/* ── Base ── */
+body, .taipy-container {
+  background: var(--bg0) !important;
+  color: var(--txt) !important;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+.taipy-container a,
+.taipy-container a:visited,
+.taipy-container .MuiLink-root {
+  color: var(--txt2) !important;
+}
+.taipy-container a:hover,
+.taipy-container .MuiLink-root:hover {
+  color: var(--txt) !important;
+}
+
+/* ── Navbar ── */
+.taipy-navbar {
+  background: var(--bg1) !important;
+  border-bottom: 1px solid var(--bdr) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 200 !important;
+  padding: 0 16px !important;
+  min-height: 48px !important;
+}
+.taipy-navbar .MuiTab-root {
+  color: var(--mut) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  min-width: auto !important;
+  padding: 12px 16px !important;
+  white-space: nowrap !important;
+}
+.taipy-navbar .MuiTab-root:hover {
+  color: var(--txt) !important;
+  background: var(--bg2) !important;
+}
+.taipy-navbar .MuiTab-root:focus-visible {
+  outline: 2px solid var(--acc) !important;
+  outline-offset: -2px !important;
+}
+.taipy-navbar .Mui-selected {
+  color: var(--txt) !important;
+  font-weight: 600 !important;
+}
+.taipy-navbar .MuiTabs-indicator {
+  background: var(--acc) !important;
+  height: 2px !important;
+}
+.taipy-menu svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* ── Page layout ── */
+.MuiContainer-root {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.pg {
+  padding: 24px 32px;
+  min-height: calc(100vh - 48px);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── Page header ── */
+.page-hd { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--bdr); }
+.page-title {
+  font-size: 20px; font-weight: 700; color: var(--txt);
+  line-height: 1.2; margin: 0 0 4px; display: block;
+}
+.page-sub { font-size: 13px; color: var(--mut); margin: 0; display: block; }
+
+/* ── Section headers ── */
+.sh {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--mut);
+  border-bottom: 1px solid var(--bdr);
+  padding-bottom: 8px; margin: 24px 0 12px;
+  display: block;
+}
+.sh:first-child { margin-top: 0; }
+.sh-top { margin-top: 0 !important; }
+.panel-hd {
+  font-size: 14px; font-weight: 700;
+  color: var(--txt);
+  border-bottom: 1px solid var(--bdr);
+  padding-bottom: 8px; margin: 0 0 14px;
+  display: block; letter-spacing: .01em;
+}
+.prog-label { display: block; color: var(--mut); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-bottom: 4px; }
+.audit-stmt { display: block; color: var(--mut); font-size: 13px; margin-bottom: 16px; }
+.pg-dashboard .page-hd {
+  background: var(--bg1);
+  border: 2px solid var(--bdr);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.pg-dashboard .dash-toolbar {
+  margin-bottom: 16px;
+}
+.pg-dashboard .dash-toolbar .dash-filter .MuiFormControl-root {
+  min-width: 7rem;
+}
+.pg-dashboard .dash-toolbar .dash-window .MuiFormControl-root {
+  min-width: 9rem;
+  width: 100% !important;
+}
+.pg-dashboard .dash-toolbar .dash-filter .MuiSelect-select,
+.pg-dashboard .dash-toolbar .dash-filter .MuiInputBase-input {
+  padding-right: 2.25rem !important;
+}
+.pg-dashboard .dash-toolbar .dash-window .MuiSelect-select,
+.pg-dashboard .dash-toolbar .dash-window .MuiInputBase-input {
+  min-width: 4ch;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+  padding-right: 2.75rem !important;
+}
+.pg-dashboard .dash-section-title {
+  color: var(--txt2);
+  border-bottom-color: var(--bdr2);
+}
+.pg-dashboard .dash-ticker-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  background: var(--bg1);
+  border: 2px solid var(--bdr);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.pg-dashboard .dash-ticker-item {
+  flex: 1 1 150px;
+  min-width: 150px;
+  padding: 10px 14px;
+  background: var(--bg2);
+  border-right: 1px solid var(--bdr);
+  border-bottom: 1px solid var(--bdr);
+}
+.pg-dashboard .dash-ticker-item:last-child {
+  border-right: none;
+}
+.pg-dashboard .dash-ticker-value {
+  display: block;
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--txt);
+}
+.pg-dashboard .dash-ticker-label {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--txt2);
+}
+.pg-dashboard .dash-ticker-blue .dash-ticker-value { color: var(--blu); }
+.pg-dashboard .dash-ticker-purple .dash-ticker-value { color: var(--pur); }
+.pg-dashboard .dash-ticker-green .dash-ticker-value { color: var(--grn); }
+.pg-dashboard .dash-ticker-red .dash-ticker-value { color: var(--red); }
+.pg-dashboard .dash-ticker-yellow .dash-ticker-value { color: var(--amb); }
+.pg-dashboard .dash-kpi {
+  text-align: left;
+  border-radius: 8px;
+  border: 2px solid var(--bdr);
+  background: var(--bg2);
+  padding: 14px 16px;
+  box-shadow: none;
+  transition: none;
+}
+.pg-dashboard .dash-kpi .mv {
+  margin-bottom: 6px;
+  color: var(--txt) !important;
+}
+.pg-dashboard .dash-kpi .ml {
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--txt2);
+}
+.pg-dashboard .dash-kpi:hover {
+  border-color: var(--bdr2);
+  background: var(--bg1);
+}
+.pg-dashboard .dash-kpi:focus-within {
+  border-color: var(--bdr2);
+  box-shadow: none;
+}
+.pg-dashboard .dash-panel {
+  border-radius: 8px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--bdr);
+  box-shadow: none;
+}
+.pg-dashboard .dash-upcoming-box {
+  background: var(--bg1);
+  border-color: var(--bdr2);
+  line-height: 1.8;
+}
+.mix-list {
+  display: block;
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--txt2);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.mix-list strong {
+  color: var(--txt);
+}
+
+/* ── Metric cards ── */
+.mc {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: 16px 20px;
+  text-align: center;
+  transition: none;
+}
+.mc:hover { border-color: var(--bdr); box-shadow: none; }
+.mv {
+  font-size: 30px; font-weight: 700;
+  color: var(--txt); line-height: 1.1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  margin-bottom: 4px;
+}
+.mv-blue   { color: var(--blu) !important; }
+.mv-purple { color: var(--pur) !important; }
+.mv-green  { color: var(--grn) !important; }
+.mv-red    { color: var(--red) !important; }
+.mv-yellow { color: var(--amb) !important; }
+.ml { font-size: 12px; color: var(--mut); font-weight: 500; }
+
+/* ── NLP banner ── */
+.nlp-banner {
+  background: var(--bg1);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-bottom: 20px;
+  font-size: 12px; color: var(--mut);
+  display: flex; align-items: center; gap: 8px;
+}
+.ml-auto {
+  margin-left: auto !important;
+}
+.banner-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--mut);
+}
+.store-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--bdr2);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  letter-spacing: .03em;
+  color: var(--txt2);
+  background: var(--bg2);
+}
+.status-ribbon {
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+/* ── Kanban ── */
+.kc {
+  background: var(--bg1);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: 12px;
+  min-height: 380px;
+}
+.kh {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bdr);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.kh-cnt {
+  background: var(--bg2); border: 1px solid var(--bdr);
+  border-radius: 10px; font-size: 10px; padding: 1px 7px;
+  color: var(--mut); font-weight: 500; margin-left: auto;
+}
+.kh-gray   { color: #9098AB !important; }
+.kh-purple { color: var(--pur) !important; }
+.kh-yellow { color: var(--amb) !important; }
+.kh-green  { color: var(--grn) !important; }
+.kh-gray .kh-cnt   { border-color: #9098AB55; color: #9098AB; }
+.kh-purple .kh-cnt { border-color: var(--pur-brd); color: var(--pur); }
+.kh-yellow .kh-cnt { border-color: var(--warn-brd); color: var(--amb); }
+.kh-green .kh-cnt  { border-color: var(--ok-brd); color: var(--grn); }
+
+/* Column-colour borders — same pattern as .danger: weak border at rest, full colour on hover */
+.kc-gray   { border-color: #9098AB30 !important; }
+.kc-purple { border-color: #C58A5A30 !important; }
+.kc-yellow { border-color: #C8A55B30 !important; }
+.kc-green  { border-color: #79A06F30 !important; }
+.kc-gray:hover   { border-color: #9098AB !important; }
+.kc-purple:hover { border-color: var(--pur) !important; }
+.kc-yellow:hover { border-color: var(--amb) !important; }
+.kc-green:hover  { border-color: var(--grn) !important; }
+
+.kc .MuiTablePagination-root,
+.kc .MuiTablePagination-selectLabel,
+.kc .MuiTablePagination-displayedRows,
+.kc .MuiTablePagination-actions {
+  color: var(--txt2) !important;
+}
+/* ── Selected card info ── */
+.sel-card-info {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-left: 3px solid var(--blu);
+  border-radius: 0 6px 6px 0;
+  padding: 4px 10px;
+  font-size: 12px; color: var(--txt2);
+  display: flex; align-items: center;
+  height: 36px; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis;
+}
+
+/* ── File ready indicator ── */
+.file-ready {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--grn-bg);
+  border: 1px solid var(--ok-brd);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px; color: var(--grn);
+  margin: 8px 0;
+}
+
+/* ── File hash display ── */
+.file-hash-display {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--mut);
+  margin-top: 4px;
+  word-break: break-all;
+}
+
+/* ── File randomart ── */
+.file-hash-art {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--acc);
+  margin-top: 8px;
+  white-space: pre;
+}
+
+/* ── PII boxes ── */
+.hi-box {
+  background: var(--bg1);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: 16px 18px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; line-height: 2.1;
+  color: var(--txt2);
+  word-break: break-word;
+}
+.anon-box {
+  background: var(--anon-bg);
+  border: 1px solid var(--anon-tag-brd);
+  border-radius: 6px;
+  padding: 16px 18px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; line-height: 1.9;
+  color: var(--anon-fg);
+  white-space: pre-wrap; word-break: break-word;
+}
+.anon-box p,
+.anon-box span,
+.anon-box em,
+.anon-box strong {
+  color: inherit !important;
+}
+.anon-box code {
+  color: var(--anon-tag) !important;
+  background: var(--anon-tag-bg);
+  border: 1px solid var(--anon-tag-brd);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 600;
+}
+
+/* ── Session saved badge ── */
+.saved-badge {
+  display: inline-flex; align-items: center;
+  background: var(--grn-bg);
+  border: 1px solid var(--ok-brd);
+  border-radius: 12px;
+  padding: 3px 10px; margin-top: 10px;
+  font-size: 12px; color: var(--grn); font-weight: 600;
+}
+
+/* ── Summary bar ── */
+.qt-summary {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-left: 3px solid var(--pur);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 16px; margin: 16px 0;
+  font-size: 14px; color: var(--txt);
+}
+
+/* ── Progress ── */
+.prog-bar-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: 16px; margin: 0 0 12px;
+}
+
+/* ── Results summary strip ── */
+.result-strip {
+  display: block;
+  background: var(--bg2); border: 1px solid var(--bdr);
+  border-radius: 6px; padding: 10px 16px; margin: 12px 0;
+  font-size: 13px; color: var(--txt2);
+}
+.result-strip strong { color: var(--txt); font-family: 'IBM Plex Mono', monospace; }
+.strip-label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 3px;
+  color: var(--mut);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.result-line {
+  display: block;
+  color: var(--txt2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* ── Status badges ── */
+.badge-blue   { background: var(--blu-bg); color: var(--blu);  border: 1px solid var(--info-brd); border-radius: 12px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+.badge-green  { background: var(--grn-bg); color: var(--grn);  border: 1px solid var(--ok-brd); border-radius: 12px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+.badge-red    { background: var(--red-bg); color: var(--red);  border: 1px solid var(--err-brd); border-radius: 12px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+.badge-amber  { background: var(--amb-bg); color: var(--amb);  border: 1px solid var(--warn-brd); border-radius: 12px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+.badge-purple { background: var(--pur-bg); color: var(--pur);  border: 1px solid var(--pur-brd); border-radius: 12px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+
+/* Severity cells (Audit + Errors tables) */
+.taipy-table .sev-info {
+  color: var(--blu) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .sev-warning {
+  color: var(--amb) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .sev-critical {
+  color: var(--red) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .sev-success {
+  color: var(--grn) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .sev-neutral {
+  color: var(--txt2) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* Status cells (jobs, submissions, schedule, pipeline job links) */
+.taipy-table .st-running {
+  color: var(--pur) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .st-pending {
+  color: var(--blu) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .st-review {
+  color: var(--amb) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .st-done {
+  color: var(--grn) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .st-failed {
+  color: var(--red) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .st-backlog {
+  color: #9098AB !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .st-neutral {
+  color: var(--txt2) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* Priority cells (pipeline board + all cards) */
+.taipy-table .pr-critical {
+  color: var(--red) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .pr-high {
+  color: var(--amb) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .pr-medium {
+  color: var(--pur) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .pr-low {
+  color: #9098AB !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.taipy-table .pr-neutral {
+  color: var(--txt2) !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 32px 24px;
+  color: var(--mut);
+  font-size: 13px;
+  border: 1px dashed var(--bdr2);
+  border-radius: 6px;
+  margin: 12px 0;
+}
+
+/* ── Settings panel ── */
+.settings-panel {
+  background: var(--bg1);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: 16px;
+}
+.entity-mix-panel,
+.geo-map-panel {
+  background: var(--bg1);
+  border-color: var(--bdr);
+}
+.entity-mix-panel .sh,
+.geo-map-panel .sh {
+  color: var(--txt2);
+  border-bottom-color: var(--bdr2);
+}
+.entity-mix-summary,
+.geo-map-summary {
+  color: var(--txt2);
+  margin-bottom: 12px;
+}
+.entity-kpi {
+  background: var(--bg2);
+  border-color: var(--bdr);
+}
+.entity-kpi-v {
+  color: var(--txt);
+  letter-spacing: .01em;
+}
+.health-kpi {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.health-kpi-v {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--txt);
+  line-height: 1.1;
+}
+.health-kpi-l {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--mut);
+}
+.qt-kpi {
+  border-width: 2px;
+  background: var(--bg1);
+}
+.qt-kpi-v {
+  letter-spacing: .01em;
+}
+.qt-kpi-gray {
+  border-color: #9098AB30;
+}
+.qt-kpi-purple {
+  border-color: #C58A5A30;
+}
+.qt-kpi-yellow {
+  border-color: #C8A55B30;
+}
+.qt-kpi-green {
+  border-color: #79A06F30;
+}
+.qt-kpi-gray-v {
+  color: #9098AB !important;
+}
+.qt-kpi-purple-v {
+  color: var(--pur) !important;
+}
+.qt-kpi-yellow-v {
+  color: var(--amb) !important;
+}
+.qt-kpi-green-v {
+  color: var(--grn) !important;
+}
+.panel {
+  background: var(--bg1);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: none;
+}
+.entity-evidence-panel .sh {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 12px;
+}
+.entity-evidence-panel .js-plotly-plot {
+  margin-top: 10px;
+}
+.toolbar-panel {
+  background: var(--bg1);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.pipeline-front-info {
+  background: var(--bg1);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  color: var(--txt2);
+  font-size: 12px;
+}
+.pipeline-board-wrap {
+  overflow-x: auto;
+  padding: 0 0 4px 10px;
+}
+.pipeline-board-wrap > .taipy-layout {
+  min-width: 1240px;
+  margin-left: 4px;
+}
+.qt-actions,
+.pipeline-actions,
+.pipeline-nav-actions,
+.schedule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.qt-actions > *,
+.pipeline-actions > *,
+.pipeline-nav-actions > *,
+.schedule-actions > * {
+  flex: 0 0 auto;
+}
+.pipeline-nav-actions {
+  margin-top: 8px;
+}
+.qt-actions .MuiButton-root,
+.pipeline-actions .MuiButton-root,
+.pipeline-nav-actions .MuiButton-root,
+.schedule-actions .MuiButton-root {
+  min-width: 118px;
+}
+.inline-hint {
+  display: block;
+  color: var(--mut);
+  font-size: 12px;
+  margin-top: 8px;
+}
+.pg-schedule .schedule-status-legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0 14px;
+}
+.pg-schedule .schedule-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border: 1px solid var(--bdr);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.pg-schedule .chip-scheduled {
+  color: var(--amb);
+  background: var(--amb-bg);
+  border-color: var(--warn-brd);
+}
+.pg-schedule .chip-completed {
+  color: var(--grn);
+  background: var(--grn-bg);
+  border-color: var(--ok-brd);
+}
+.pg-schedule .chip-cancelled {
+  color: var(--red);
+  background: var(--red-bg);
+  border-color: var(--err-brd);
+}
+.settings-label {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--mut); margin-bottom: 6px; display: block;
+}
+
+/* ── Chat component ── */
+.taipy-chat {
+  background: var(--bg1) !important;
+  border: 1px solid var(--bdr) !important;
+  border-radius: 6px !important;
+}
+.taipy-chat .MuiInputBase-root {
+  background: var(--bg2) !important;
+  border-top: 1px solid var(--bdr) !important;
+  border-radius: 0 0 6px 6px !important;
+}
+.taipy-chat .taipy-chat-message {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+}
+/* User bubble (right) */
+.taipy-chat .taipy-chat-message-right .MuiPaper-root {
+  background: var(--blu-bg) !important;
+  border: 1px solid var(--info-brd-weak) !important;
+  color: var(--txt) !important;
+  border-radius: 12px 12px 2px 12px !important;
+}
+/* Bot bubble (left) */
+.taipy-chat .taipy-chat-message-left .MuiPaper-root {
+  background: var(--bg2) !important;
+  border: 1px solid var(--bdr) !important;
+  color: var(--txt2) !important;
+  border-radius: 12px 12px 12px 2px !important;
+}
+.taipy-chat .MuiAvatar-root {
+  background: var(--bg2) !important;
+  border: 1px solid var(--bdr) !important;
+  font-size: 11px !important; font-weight: 700 !important;
+}
+
+/* ── Flat buttons ── */
+.MuiButton-root {
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  text-transform: none !important;
+}
+.MuiButton-root:hover,
+.MuiButton-root:active,
+.MuiButton-root:focus-visible {
+  box-shadow: none !important;
+}
+.MuiButton-contained,
+.MuiButton-containedPrimary,
+.MuiButton-containedSecondary,
+.MuiButton-outlined,
+.MuiButton-outlinedPrimary,
+.MuiButton-outlinedSecondary {
+  background: var(--bg2) !important;
+  border: 1px solid var(--bdr) !important;
+  color: var(--txt) !important;
+}
+.MuiButton-contained:hover,
+.MuiButton-containedPrimary:hover,
+.MuiButton-containedSecondary:hover,
+.MuiButton-outlined:hover,
+.MuiButton-outlinedPrimary:hover,
+.MuiButton-outlinedSecondary:hover {
+  background: var(--bg1) !important;
+  border-color: var(--bdr2) !important;
+  color: var(--txt) !important;
+}
+.MuiButton-text,
+.MuiButton-textPrimary,
+.MuiButton-textSecondary {
+  color: var(--txt2) !important;
+}
+.MuiButton-text:hover,
+.MuiButton-textPrimary:hover,
+.MuiButton-textSecondary:hover {
+  background: var(--bg2) !important;
+  color: var(--txt) !important;
+}
+
+/* ── Minimal control tweaks ── */
+.danger .MuiButton-root, .danger.MuiButton-root {
+  color: var(--red) !important;
+  border-color: var(--err-brd-weak) !important;
+}
+.danger .MuiButton-root:hover, .danger.MuiButton-root:hover {
+  background: var(--red-bg) !important;
+  border-color: var(--red) !important;
+  box-shadow: none !important;
+}
+.taipy-input.fullwidth .MuiFormControl-root,
+.taipy-selector.fullwidth .MuiFormControl-root { width: 100% !important; }
+.job-basic-controls {
+  margin-top: 4px;
+  position: relative;
+  z-index: 2;
+}
+.job-basic-controls .job-method-field .MuiFormControl-root,
+.job-basic-controls .job-threshold-field .MuiFormControl-root {
+  margin-top: 10px !important;
+}
+.job-basic-controls .job-method-field label.MuiFormLabel-root,
+.job-basic-controls .job-threshold-field label.MuiFormLabel-root {
+  z-index: 3;
+}
+
+/* ── Notifications / Toasts ── */
+.notistack-SnackbarContainer,
+.MuiSnackbar-root {
+  z-index: 1700 !important;
+}
+
+/* Taipy v4 notify() uses notistack; keep MUI fallback selectors too. */
+.notistack-Snackbar .notistack-MuiContent,
+.notistack-Snackbar .notistack-snackbar,
+.MuiSnackbar-root .MuiPaper-root,
+.MuiSnackbar-root .MuiAlert-root {
+  background: var(--bg1) !important;
+  color: var(--txt2) !important;
+  border: 1px solid var(--bdr) !important;
+  border-left: 3px solid var(--info-brd) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+.notistack-Snackbar .notistack-MuiContent #notistack-snackbar,
+.MuiSnackbar-root .MuiAlert-message {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+.notistack-Snackbar .notistack-MuiContent .MuiIconButton-root,
+.MuiSnackbar-root .MuiIconButton-root {
+  color: var(--mut) !important;
+}
+.notistack-Snackbar .notistack-MuiContent .MuiIconButton-root:hover,
+.MuiSnackbar-root .MuiIconButton-root:hover {
+  background: var(--bg2) !important;
+  color: var(--txt2) !important;
+}
+
+.notistack-Snackbar .notistack-MuiContent .MuiSvgIcon-root,
+.MuiSnackbar-root .MuiAlert-icon,
+.MuiSnackbar-root .MuiAlert-action {
+  color: var(--mut) !important;
+}
+
+/* Severity accents (Taipy notistack + MUI alert variants). */
+.notistack-Snackbar .notistack-MuiContent.notistack-MuiContent-success,
+.MuiSnackbar-root .MuiAlert-standardSuccess,
+.MuiSnackbar-root .MuiAlert-filledSuccess {
+  border-left-color: var(--ok-brd) !important;
+}
+.notistack-Snackbar .notistack-MuiContent.notistack-MuiContent-info,
+.MuiSnackbar-root .MuiAlert-standardInfo,
+.MuiSnackbar-root .MuiAlert-filledInfo {
+  border-left-color: var(--info-brd) !important;
+}
+.notistack-Snackbar .notistack-MuiContent.notistack-MuiContent-warning,
+.MuiSnackbar-root .MuiAlert-standardWarning,
+.MuiSnackbar-root .MuiAlert-filledWarning {
+  border-left-color: var(--warn-brd) !important;
+}
+.notistack-Snackbar .notistack-MuiContent.notistack-MuiContent-error,
+.MuiSnackbar-root .MuiAlert-standardError,
+.MuiSnackbar-root .MuiAlert-filledError {
+  border-left-color: var(--err-brd) !important;
+}
+
+@media (max-width: 960px) {
+  .pg { padding: 16px; }
+  .mc { padding: 12px 14px; }
+  .mv { font-size: 24px; }
+  .qt-actions > *,
+  .pipeline-actions > *,
+  .pipeline-nav-actions > *,
+  .schedule-actions > * {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
+
+@media (max-width: 640px) {
+  .qt-actions > *,
+  .pipeline-actions > *,
+  .pipeline-nav-actions > *,
+  .schedule-actions > * {
+    flex: 1 1 100%;
+  }
+  .qt-actions .MuiButton-root,
+  .pipeline-actions .MuiButton-root,
+  .pipeline-nav-actions .MuiButton-root,
+  .schedule-actions .MuiButton-root {
+    width: 100%;
+    min-width: 0;
+  }
+}

@@ -1,0 +1,40 @@
+# Labeler configuration — maps file globs to labels for actions/labeler
+# See: https://github.com/actions/labeler
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*.md"
+          - "docs/**"
+
+python:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*.py"
+          - "requirements.txt"
+
+pii-detection:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "presidio_helpers.py"
+          - "presidio_nlp_engine_config.py"
+          - "flair_recognizer.py"
+          - "azure_ai_language_wrapper.py"
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "presidio_streamlit.py"
+
+devops:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "Dockerfile"
+          - ".github/workflows/**"
+          - ".github/dependabot.yml"
+
+testing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "test_*.py"
+          - "*_test.py"
