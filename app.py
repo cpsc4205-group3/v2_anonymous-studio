@@ -92,6 +92,11 @@ from services.attestation_crypto import (
     sign_attestation_payload,
     signature_required,
 )
+from services.telemetry import (
+    record_job_completion,
+    get_telemetry_snapshot,
+    get_recent_events,
+)
 from services.synthetic import SyntheticConfig, synthesize_from_anonymized_text
 
 store  = get_store()
@@ -284,6 +289,7 @@ menu_lov = [
     ("pipeline",  Icon("images/pipeline.svg",   "Pipeline")),
     ("schedule",  Icon("images/schedule.svg",   "Reviews")),
     ("audit",     Icon("images/audit.svg",      "Audit Log")),
+    ("telemetry", Icon("images/dashboard.svg",  "Telemetry")),
     ("ui_demo",   Icon("images/dashboard.svg",  "UI")),
 ]
 
@@ -707,6 +713,22 @@ dash_perf_delta_ms       = 0.0    # latest session vs avg — negative = faster
 dash_perf_count          = 0      # <|...|metric|> — total timed sessions
 dash_perf_figure         = {}
 perf_telemetry_table     = pd.DataFrame(columns=["Session", "ms"])
+
+# ── Telemetry page ────────────────────────────────────────────────────────────
+telemetry_kpi_jobs_created  = 0
+telemetry_kpi_completed     = 0
+telemetry_kpi_failed        = 0
+telemetry_kpi_entities      = 0
+telemetry_kpi_rows          = 0
+telemetry_kpi_scenarios     = 0
+telemetry_duration_avg      = 0.0
+telemetry_duration_p95      = 0.0
+telemetry_duration_count    = 0
+telemetry_prometheus_status = "—"
+telemetry_event_table       = pd.DataFrame(columns=["Time", "Entity", "Operation", "Attribute", "Value", "ID"])
+telemetry_lifecycle_figure  = {}
+telemetry_data_figure       = {}
+telemetry_last_refresh      = "—"
 
 # ── UI (Taipy + Plotly showcase over live app data) ──────────────────────────
 ui_demo_mode = "All"
@@ -1289,6 +1311,86 @@ def _refresh_audit(state):
             "Severity": e.severity,
         })
     state.audit_table = pd.DataFrame(rows, columns=["Time", "Actor", "Action", "Resource", "Details", "Severity"])
+
+
+def _refresh_telemetry(state) -> None:
+    """Rebuild all telemetry page state from the in-process snapshot."""
+    snap = get_telemetry_snapshot()
+    state.telemetry_kpi_jobs_created = snap.get("jobs_created", 0)
+    state.telemetry_kpi_completed    = snap.get("jobs_completed", 0)
+    state.telemetry_kpi_failed       = snap.get("jobs_failed", 0)
+    state.telemetry_kpi_entities     = snap.get("entities_detected", 0)
+    state.telemetry_kpi_rows         = snap.get("rows_processed", 0)
+    state.telemetry_kpi_scenarios    = snap.get("scenarios_created", 0)
+    state.telemetry_duration_avg     = float(snap.get("duration_avg_s") or 0.0)
+    state.telemetry_duration_p95     = float(snap.get("duration_p95_s") or 0.0)
+    state.telemetry_duration_count   = int(snap.get("duration_count", 0) or 0)
+
+    prom_ok = snap.get("prometheus_available", False)
+    port    = snap.get("metrics_port", 0)
+    if prom_ok and port > 0:
+        state.telemetry_prometheus_status = f"✓ Prometheus active — /metrics on :{port}"
+    elif prom_ok:
+        state.telemetry_prometheus_status = "✓ prometheus_client installed · set ANON_METRICS_PORT to expose /metrics"
+    else:
+        state.telemetry_prometheus_status = "▲ prometheus_client not installed — install with: pip install prometheus_client"
+
+    # ── Recent events table ──────────────────────────────────────────────────
+    events = get_recent_events(limit=100)
+    if events:
+        rows = [
+            {
+                "Time":      e.get("ts", "")[-8:],
+                "Entity":    e.get("entity_type", ""),
+                "Operation": e.get("operation", ""),
+                "Attribute": e.get("attribute", ""),
+                "Value":     e.get("value", "")[:30],
+                "ID":        e.get("entity_id", ""),
+            }
+            for e in reversed(events)
+        ]
+        state.telemetry_event_table = pd.DataFrame(rows)
+    else:
+        state.telemetry_event_table = pd.DataFrame(
+            columns=["Time", "Entity", "Operation", "Attribute", "Value", "ID"]
+        )
+
+    # ── Job lifecycle bar chart ──────────────────────────────────────────────
+    if go is not None:
+        created   = snap.get("jobs_created", 0)
+        running   = snap.get("jobs_running", 0)
+        completed = snap.get("jobs_completed", 0)
+        failed    = snap.get("jobs_failed", 0)
+        canceled  = snap.get("jobs_canceled", 0)
+        fig_lc = go.Figure(
+            data=[go.Bar(
+                x=["Created", "Running", "Completed", "Failed", "Canceled"],
+                y=[created, running, completed, failed, canceled],
+                marker_color=["#6F86B9", "#C8A55B", "#79A06F", "#D06A64", "#6F8FA3"],
+            )],
+            layout={**CHART_LAYOUT, "title": {"text": "Job Lifecycle Counts", "font": {"size": 13}}},
+        )
+        state.telemetry_lifecycle_figure = fig_lc.to_dict()
+
+        # ── Data throughput chart ────────────────────────────────────────────
+        fig_data = go.Figure(
+            data=[go.Bar(
+                x=["Entities Detected", "Rows Processed", "Scenarios"],
+                y=[
+                    snap.get("entities_detected", 0),
+                    snap.get("rows_processed", 0),
+                    snap.get("scenarios_created", 0),
+                ],
+                marker_color=["#8A38F5", "#6F86B9", "#C8A55B"],
+            )],
+            layout={**CHART_LAYOUT, "title": {"text": "Data Throughput (cumulative)", "font": {"size": 13}}},
+        )
+        state.telemetry_data_figure = fig_data.to_dict()
+    else:
+        state.telemetry_lifecycle_figure = {}
+        state.telemetry_data_figure = {}
+
+    state.telemetry_last_refresh = datetime.now().strftime("%H:%M:%S")
 
 
 def severity_cell_class(state, value, index, row, column_name):
@@ -3173,6 +3275,7 @@ def on_init(state):
     _refresh_job_table(state)
     _sync_active_job_progress(state, load_results_on_done=True)
     _refresh_sessions(state)
+    _refresh_telemetry(state)
     # Pre-populate PII Text page so it's immediately useful
     try:
         ents = engine.analyze(state.qt_input, state.qt_entities, state.qt_threshold)
@@ -3185,7 +3288,7 @@ def on_init(state):
 
 # ── Navigation ────────────────────────────────────────────────────────────────
 def on_menu_action(state, id, payload):
-    valid_pages = {"dashboard", "analyze", "jobs", "pipeline", "schedule", "audit", "ui_demo"}
+    valid_pages = {"dashboard", "analyze", "jobs", "pipeline", "schedule", "audit", "ui_demo", "telemetry"}
 
     def _normalize_page(value: Any) -> Optional[str]:
         if not isinstance(value, str):
@@ -3236,6 +3339,9 @@ def on_menu_action(state, id, payload):
     elif page == "ui_demo":
         _refresh_ui_demo(state)
         _refresh_plotly_playground(state)
+    elif page == "telemetry":
+        _refresh_telemetry(state)
+    state.active_page = page
 
 
 def on_taipy_event(state, event):
@@ -3250,8 +3356,33 @@ def on_taipy_event(state, event):
         op = str(getattr(event, "operation", ""))
         attr = str(getattr(event, "attribute_name", ""))
         val = str(getattr(event, "attribute_value", ""))
-        if "JOB" in ent and "UPDATE" in op and attr == "status" and "FAILED" in val.upper():
-            notify(state, "error", "A Taipy job failed. Open Errors / Audit for details.")
+        eid = str(getattr(event, "entity_id", "") or "")
+        short_id = eid[:16] if eid else "?"
+        # ── Audit trail for Taipy-native events ──────────────────────────────
+        if "SCENARIO" in ent and "CREATION" in op:
+            store.log_user_action("system", "taipy.scenario.created", "scenario", short_id,
+                                  f"Scenario created", severity="info")
+        elif "JOB" in ent and "UPDATE" in op and attr == "status":
+            val_up = val.upper()
+            if "COMPLETED" in val_up or "SKIPPED" in val_up:
+                store.log_user_action("system", "taipy.job.completed", "job", short_id,
+                                      f"Job reached status {val}", severity="info")
+            elif "FAILED" in val_up or "ABANDONED" in val_up:
+                store.log_user_action("system", "taipy.job.failed", "job", short_id,
+                                      f"Job reached status {val}", severity="warning")
+                notify(state, "error", "A Taipy job failed. Open Errors / Audit for details.")
+            elif "CANCELED" in val_up:
+                store.log_user_action("system", "taipy.job.canceled", "job", short_id,
+                                      f"Job canceled", severity="info")
+            elif "RUNNING" in val_up:
+                store.log_user_action("system", "taipy.job.running", "job", short_id,
+                                      f"Job started running", severity="info")
+    except Exception:
+        pass
+    # Refresh the telemetry page if the user is viewing it.
+    try:
+        if getattr(state, "active_page", "") == "telemetry":
+            _refresh_telemetry(state)
     except Exception:
         pass
 
@@ -4131,6 +4262,10 @@ def on_submit_job(state):
         notify(state, "warning", "Upload a CSV or Excel file first.")
         return
 
+    if not state.job_entities:
+        notify(state, "warning", "Select at least one entity type before running a job.")
+        return
+
     fname = (_slot.get("name") or state.job_file_name or "")
     lowered = str(fname or "").lower()
     job_id = new_job_id()
@@ -4231,6 +4366,12 @@ def on_submit_job(state):
               f"{row_count:,} rows · {state.job_operator} · "
               f"{len(state.job_entities)} entity types")
 
+    try:
+        if not tp.is_orchestrator_running():
+            notify(state, "warning", "Taipy Orchestrator is not running — job will queue but not execute until it starts.")
+    except Exception:
+        pass
+
     invoke_long_callback(
         state,
         user_function=_bg_submit_job,
@@ -4275,6 +4416,11 @@ def _load_job_results(state, jid: str):
             pass
         stats_data = sc.job_stats.read()
         anon_df    = sc.anon_output.read()
+        # Record completion telemetry
+        try:
+            record_job_completion(jid, stats_data or {})
+        except Exception:
+            pass
         state.stats_entity_rows = build_entity_stats_df(stats_data)
         if not state.stats_entity_rows.empty and go is not None:
             sdf = state.stats_entity_rows.sort_values("Count", ascending=True)
@@ -4894,6 +5040,23 @@ def on_audit_clear(state):
     _refresh_audit(state)
 
 
+# ── Telemetry ─────────────────────────────────────────────────────────────────
+def on_refresh_telemetry(state):
+    """Refresh telemetry KPIs, charts, and event log."""
+    _refresh_telemetry(state)
+    notify(state, "info", "Telemetry refreshed.")
+
+
+def on_export_telemetry_csv(state):
+    """Download the recent event log as a CSV file."""
+    df = state.telemetry_event_table
+    if isinstance(df, pd.DataFrame) and not df.empty:
+        csv_bytes = df.to_csv(index=False).encode()
+        download(state, content=csv_bytes, name="telemetry_events.csv")
+    else:
+        notify(state, "warning", "No telemetry events to export.")
+
+
 # ── Dashboard ────────────────────────────────────────────────────────────────
 def on_dash_filters_change(state, var_name=None, value=None):
     _refresh_dashboard(state)
@@ -5247,7 +5410,23 @@ def run_app():
             data_url_max_size=50 * 1024 * 1024,
             use_reloader=use_reloader,
             debug=debug_mode,
+            # Increase the max_decode_packets to handle large state with many dataframes
+            async_mode="threading",
+            engineio_logger=False,
         )
+        
+        # Patch engineio to increase packet limit before starting server
+        try:
+            import engineio
+            # Monkey-patch the Server class to use higher limit
+            _original_init = engineio.Server.__init__
+            def _patched_init(self, *args, **kwargs):
+                kwargs.setdefault('max_decode_packets', 100)
+                return _original_init(self, *args, **kwargs)
+            engineio.Server.__init__ = _patched_init
+        except Exception as e:
+            _log.warning("Could not patch engineio packet limit: %s", e)
+        
         if taipy_host:
             run_kwargs["host"] = taipy_host
         if taipy_port:

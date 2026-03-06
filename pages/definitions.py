@@ -12,34 +12,16 @@ DASH = """
 <|part|class_name=nlp-banner|
 <|Settings|button|on_action=on_store_settings_open|class_name=secondary plain|hover_text=Change store backend|>
 <|Store|text|class_name=banner-label ml-auto|>
-<|{store_status_label}|text|class_name=store-mode-pill|hover_text={store_status_hover}|>
-|>
-
-<|{store_settings_open}|dialog|title=Store Settings|width=640px|
-<|{store_backend_sel}|selector|lov={store_backend_lov}|label=Backend|class_name=fullwidth|>
-<|part|render={store_backend_sel=="mongo"}|
-<|{store_mongo_uri}|input|label=MongoDB URI|class_name=fullwidth|hover_text=e.g. mongodb://localhost:27017/anon_studio or mongodb+srv://user:pass@cluster/db|>
-|>
-<|part|render={store_backend_sel=="duckdb"}|
-<|{store_duckdb_path}|input|label=DuckDB file path|class_name=fullwidth|hover_text=e.g. /tmp/anon_studio.duckdb for local persistent single-node storage.|>
-|>
-<|part|render={store_settings_msg!=""}|
-<|{store_settings_msg}|text|class_name=inline-hint|>
-|>
-<|layout|columns=1 1|gap=8px|
-<|Apply|button|on_action=on_store_apply|>
-<|Cancel|button|on_action=on_store_settings_close|class_name=secondary|>
-|>
+<|{store_status_label}|button|on_action=on_store_settings_open|class_name=store-mode-pill plain|hover_text={store_status_hover}|>
 |>
 
 <|part|class_name=dash-toolbar|
-<|layout|columns=1 2 2 4 3|gap=8px|
+<|layout|columns=1 1 1 1 8|gap=8px|
 <|Refresh|button|on_action=on_refresh_dashboard|class_name=secondary|>
 <|Generate Demo Session|button|on_action=on_dash_seed_demo|class_name=secondary|>
 <|{dash_report_mode}|selector|lov={dash_report_mode_lov}|dropdown=True|label=Mode|on_change=on_dash_filters_change|class_name=fullwidth dash-filter|>
 <|{dash_time_window}|selector|lov={dash_time_window_lov}|dropdown=True|label=Window|on_change=on_dash_filters_change|class_name=fullwidth dash-filter dash-window|>
-<|part|
-|>
+<|part|>
 |>
 |>
 
@@ -78,8 +60,8 @@ DASH = """
 <|{dash_upcoming_md}|text|mode=md|class_name=hi-box dash-upcoming-box|>
 |>
 
-<|part|render={dash_stage_chart_visible or dash_entity_chart_visible}|class_name=dash-reports|
-<|Overview Reports|text|class_name=sh dash-section-title|>
+<|part|class_name=dash-lower-section|
+
 <|layout|columns=1 1|gap=24px|
 <|part|render={dash_stage_chart_visible}|class_name=settings-panel dash-panel|
 <|Pipeline Health|text|class_name=sh sh-top|>
@@ -89,47 +71,28 @@ DASH = """
 <|{dash_backlog_cards}|metric|title=Backlog|delta={dash_backlog_cards_delta}|delta_color=inversed|format=%d|>
 |>
 <|{dash_completion_pct}|progress|linear=True|>
+<|Pipeline Stage Distribution|text|class_name=sh|>
+<|{dash_stage_chart}|chart|type=plotly|figure={dash_stage_figure}|height=300px|>
 |>
+<|part|render={not dash_stage_chart_visible}|class_name=panel widget-empty|
+<|Pipeline|text|class_name=sh sh-top|>
+<|No pipeline cards yet.|text|class_name=widget-empty-title|>
+<|Create cards in the Pipeline to begin tracking compliance stages.|text|class_name=widget-empty-sub|>
+|>
+
 <|part|render={dash_entity_chart_visible}|class_name=settings-panel dash-panel entity-mix-panel|
-<|PII Entity Mix|text|class_name=sh sh-top|>
+<|PII Entity Analysis|text|class_name=sh sh-top|>
 <|{dash_entity_report_md}|text|mode=md|class_name=audit-stmt entity-mix-summary|>
 <|layout|columns=1 1|gap=12px|
 <|{dash_entity_dominance_pct}|metric|title=Dominant Share %|format=%.1f|type=none|>
 <|{dash_kpi_entities_total}|metric|title=Total Detections|format=%d|type=none|>
 |>
-<|{dash_entity_mix_chart}|chart|type=plotly|figure={dash_entity_mix_figure}|height=280px|>
-|>
-|>
-|>
-
-<|part|
-
-<|part|render={dash_map_visible}|class_name=settings-panel dash-panel geo-map-panel|
-<|Geo Signal Map|text|class_name=sh sh-top|>
-<|{dash_map_md}|text|mode=md|class_name=audit-stmt geo-map-summary|>
-<|{dash_map_chart}|chart|type=plotly|figure={dash_map_figure}|height=360px|>
-|>
-<|part|render={not dash_map_visible}|class_name=panel widget-empty|
-<|Geo Signal Map|text|class_name=sh sh-top|>
-<|No location mentions yet.|text|class_name=widget-empty-title|>
-<|Analyze location-rich text to light up the map.|text|class_name=widget-empty-sub|>
-<|part|class_name=widget-empty-actions|
-<|Generate Demo Session|button|on_action=on_dash_seed_demo|>
-|>
-|>
-
-<|layout|columns=1 1|gap=24px|
-<|part|render={dash_stage_chart_visible}|class_name=panel dash-panel|
-<|Pipeline Stage Distribution|text|class_name=sh|>
-<|{dash_stage_chart}|chart|type=plotly|figure={dash_stage_figure}|height=320px|>
-|>
-<|part|render={dash_entity_chart_visible}|class_name=panel dash-panel|
 <|Top PII Entity Types|text|class_name=sh|>
 <|All sessions|text|class_name=inline-hint|>
-<|{dash_entity_chart}|chart|type=plotly|figure={dash_entity_chart_figure}|height=400px|>
+<|{dash_entity_chart}|chart|type=plotly|figure={dash_entity_chart_figure}|height=320px|>
 |>
 <|part|render={not dash_entity_chart_visible}|class_name=panel widget-empty|
-<|Top PII Entity Types|text|class_name=sh sh-top|>
+<|PII Entity Analysis|text|class_name=sh sh-top|>
 <|No saved PII sessions yet.|text|class_name=widget-empty-title|>
 <|Run one demo session to populate this chart instantly.|text|class_name=widget-empty-sub|>
 <|part|class_name=widget-empty-actions|
@@ -148,6 +111,20 @@ DASH = """
 <|Pipeline Burndown|text|class_name=sh sh-top|>
 <|No pipeline cards yet.|text|class_name=widget-empty-title|>
 <|Create cards in the Pipeline to see remaining open work over time.|text|class_name=widget-empty-sub|>
+|>
+
+<|part|render={dash_map_visible}|class_name=settings-panel dash-panel geo-map-panel|
+<|Geo Signal Map|text|class_name=sh sh-top|>
+<|{dash_map_md}|text|mode=md|class_name=audit-stmt geo-map-summary|>
+<|{dash_map_chart}|chart|type=plotly|figure={dash_map_figure}|height=360px|>
+|>
+<|part|render={not dash_map_visible}|class_name=panel widget-empty|
+<|Geo Signal Map|text|class_name=sh sh-top|>
+<|No location mentions yet.|text|class_name=widget-empty-title|>
+<|Analyze location-rich text to light up the map.|text|class_name=widget-empty-sub|>
+<|part|class_name=widget-empty-actions|
+<|Generate Demo Session|button|on_action=on_dash_seed_demo|>
+|>
 |>
 
 <|part|render={dash_perf_visible}|class_name=settings-panel dash-panel|
@@ -186,7 +163,7 @@ JOBS = """
 |>
 
 <|layout|columns=1 1 10|gap=8px|
-<|Run Job|button|on_action=on_submit_job|>
+<|Run Job|button|on_action=on_submit_job|render={job_file_content is not None}|>
 <|Refresh|button|on_action=on_poll_progress|class_name=secondary|>
 <|part|>
 |>
@@ -201,13 +178,13 @@ JOBS = """
 <|part|class_name=nlp-banner status-ribbon|
 <|NLP|text|class_name=banner-label|>
 <|{spacy_ok}|status|>
-<|{spacy_status_label}|text|class_name=store-mode-pill|hover_text={spacy_status_hover}|>
+<|{spacy_status_label}|button|on_action=on_job_adv_open|class_name=store-mode-pill plain|hover_text={spacy_status_hover}|>
 <|Store|text|class_name=banner-label|>
 <|{store_ok}|status|>
-<|{store_status_label}|text|class_name=store-mode-pill|hover_text={store_status_hover}|>
+<|{store_status_label}|button|on_action=on_store_settings_open|class_name=store-mode-pill plain|hover_text={store_status_hover}|>
 <|Raw DataNode|text|class_name=banner-label|>
 <|{raw_input_ok}|status|>
-<|{raw_input_status_label}|text|class_name=store-mode-pill|hover_text={raw_input_status_hover}|>
+<|{raw_input_status_label}|button|on_action=on_job_adv_open|class_name=store-mode-pill plain|hover_text={raw_input_status_hover}|>
 <|Settings|button|on_action=on_store_settings_open|class_name=secondary plain ml-auto|hover_text=Change store backend|>
 |>
 
@@ -362,7 +339,6 @@ JOBS = """
 <|{whatif_scenarios_sel}|selector|lov={whatif_scenarios_lov}|multiple=True|dropdown=True|filter=True|label=Scenarios to compare|>
 <|Compare Scenarios|button|on_action=on_whatif_compare|class_name=secondary|>
 <|{whatif_compare_md}|text|mode=md|class_name=inline-hint|>
-<|{comparator_scenarios}|scenario_comparator|>
 <|part|render={whatif_compare_has_data}|
 <|layout|columns=1 1|gap=16px|
 <|{whatif_compare_data}|table|columns=Scenario;Processed Rows;Entities;Entities / Row|show_all=False|page_size=6|>
@@ -727,14 +703,24 @@ UI_DEMO = """
 
 <|part|class_name=panel|
 <|Playground Controls|text|class_name=sh sh-top|>
-<|layout|columns=1 1 1 1 1 1 1|gap=10px|
+<|layout|columns=1 1 1 1|gap=10px|
 <|{ui_plot_type}|selector|lov={ui_plot_type_lov}|dropdown=True|label=Type|on_change=on_ui_demo_filters_change|>
-<|{ui_plot_orientation}|selector|lov={ui_plot_orientation_lov}|dropdown=True|label=Orientation|render={ui_plot_show_orientation}|on_change=on_ui_demo_filters_change|>
-<|{ui_plot_barmode}|selector|lov={ui_plot_barmode_lov}|dropdown=True|label=Bar Mode|render={ui_plot_show_barmode}|on_change=on_ui_demo_filters_change|>
-<|{ui_plot_trace_mode}|selector|lov={ui_plot_trace_mode_lov}|dropdown=True|label=Trace Mode|render={ui_plot_show_trace_mode}|on_change=on_ui_demo_filters_change|>
 <|{ui_plot_palette}|selector|lov={ui_plot_palette_lov}|dropdown=True|label=Palette|on_change=on_ui_demo_filters_change|>
 <|{ui_plot_theme}|selector|lov={ui_plot_theme_lov}|dropdown=True|label=Theme|on_change=on_ui_demo_filters_change|>
 <|{ui_plot_show_legend}|selector|lov={ui_plot_show_legend_lov}|dropdown=True|label=Legend|on_change=on_ui_demo_filters_change|>
+|>
+<|part|render={ui_plot_show_orientation or ui_plot_show_barmode}|
+<|layout|columns=1 1 6|gap=10px|
+<|{ui_plot_orientation}|selector|lov={ui_plot_orientation_lov}|dropdown=True|label=Orientation|on_change=on_ui_demo_filters_change|>
+<|{ui_plot_barmode}|selector|lov={ui_plot_barmode_lov}|dropdown=True|label=Bar Mode|on_change=on_ui_demo_filters_change|>
+<|part|>
+|>
+|>
+<|part|render={ui_plot_show_trace_mode}|
+<|layout|columns=1 7|gap=10px|
+<|{ui_plot_trace_mode}|selector|lov={ui_plot_trace_mode_lov}|dropdown=True|label=Trace Mode|on_change=on_ui_demo_filters_change|>
+<|part|>
+|>
 |>
 <|layout|columns=1 1 6|gap=10px|
 <|{ui_demo_mode}|selector|lov={ui_demo_mode_lov}|dropdown=True|label=Catalog Mode|hover_text=Filter which catalog charts render: All, Entities only, Confidence only, or Operations only.|on_change=on_ui_demo_filters_change|>
@@ -809,6 +795,88 @@ UI_DEMO = """
 |>
 """
 
+TELEMETRY = """
+<|part|class_name=panel|
+<|## 📡 Telemetry|text|mode=md|>
+<|Pipeline observability — job lifecycle events, throughput metrics, and Prometheus integration status.|text|class_name=inline-hint|>
+|>
+
+<|part|class_name=panel|
+<|**Prometheus:** {telemetry_prometheus_status}|text|mode=md|>
+|>
+
+<|part|class_name=panel|
+<|### KPIs|text|class_name=sh sh-top|>
+<|layout|columns=1 1 1 1 1 1|gap=12px|
+<|part|
+<|Jobs Created|text|class_name=inline-hint|>
+<|{telemetry_kpi_jobs_created}|text|class_name=metric-value|>
+|>
+<|part|
+<|Completed|text|class_name=inline-hint|>
+<|{telemetry_kpi_completed}|text|class_name=metric-value|>
+|>
+<|part|
+<|Failed|text|class_name=inline-hint|>
+<|{telemetry_kpi_failed}|text|class_name=metric-value|>
+|>
+<|part|
+<|Entities Found|text|class_name=inline-hint|>
+<|{telemetry_kpi_entities}|text|class_name=metric-value|>
+|>
+<|part|
+<|Rows Processed|text|class_name=inline-hint|>
+<|{telemetry_kpi_rows}|text|class_name=metric-value|>
+|>
+<|part|
+<|Scenarios|text|class_name=inline-hint|>
+<|{telemetry_kpi_scenarios}|text|class_name=metric-value|>
+|>
+|>
+|>
+
+<|part|class_name=panel|
+<|### Duration Stats|text|class_name=sh sh-top|>
+<|layout|columns=1 1 1|gap=12px|
+<|part|
+<|Avg Duration (s)|text|class_name=inline-hint|>
+<|{telemetry_duration_avg}|text|class_name=metric-value|>
+|>
+<|part|
+<|P95 Duration (s)|text|class_name=inline-hint|>
+<|{telemetry_duration_p95}|text|class_name=metric-value|>
+|>
+<|part|
+<|Samples|text|class_name=inline-hint|>
+<|{telemetry_duration_count}|text|class_name=metric-value|>
+|>
+|>
+|>
+
+<|layout|columns=1 1|gap=16px|
+<|part|class_name=panel|
+<|### Job Lifecycle|text|class_name=sh sh-top|>
+<|{telemetry_lifecycle_figure}|chart|figure={telemetry_lifecycle_figure}|>
+|>
+<|part|class_name=panel|
+<|### Data Throughput|text|class_name=sh sh-top|>
+<|{telemetry_data_figure}|chart|figure={telemetry_data_figure}|>
+|>
+|>
+
+<|part|class_name=panel|
+<|### Recent Events|text|class_name=sh sh-top|>
+<|{telemetry_event_table}|table|columns=timestamp;event_type;actor;resource_type;resource_id;message|show_all=False|page_size=15|>
+|>
+
+<|layout|columns=1 1 1 1|gap=12px|
+<|Refresh|button|on_action=on_refresh_telemetry|class_name=button-primary|>
+<|Export CSV|button|on_action=on_export_telemetry_csv|>
+<|Last refreshed: {telemetry_last_refresh}|text|class_name=inline-hint|>
+<||text|>
+|>
+"""
+
 # ─── Navigation & pages dict ──────────────────────────────────────────────────
 NAV = """
 <|menu|lov={menu_lov}|on_action=on_menu_action|label=Anonymous Studio|>
@@ -822,5 +890,6 @@ PAGES = {
     "pipeline":   PIPELINE,
     "schedule":   SCHEDULE,
     "audit":      AUDIT,
+    "telemetry":  TELEMETRY,
     "ui_demo":    UI_DEMO,
 }

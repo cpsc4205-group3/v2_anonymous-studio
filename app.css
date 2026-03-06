@@ -246,6 +246,12 @@ body, .taipy-container {
   border-color: var(--bdr);
   box-shadow: none;
 }
+.pg-dashboard .dash-lower-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
 .pg-dashboard .dash-upcoming-box {
   background: var(--bg1);
   border-color: var(--bdr2);
@@ -318,6 +324,7 @@ body, .taipy-container {
   letter-spacing: .03em;
   color: var(--txt2);
   background: var(--bg2);
+  cursor: pointer;
 }
 .status-ribbon {
   gap: 10px;
