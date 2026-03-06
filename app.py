@@ -4711,6 +4711,7 @@ def on_card_save(state):
             store.log_user_action("user", "session.attach", "card", state.card_id_edit,
                       f"Session {new_session_id} attached to '{state.card_title_f}'",
                       severity=_priority_to_severity(state.card_priority_f))
+            store.update_session(new_session_id, pipeline_card_id=state.card_id_edit)
         notify(state, "success", "Card updated.")
     else:
         c = PipelineCard(title=state.card_title_f, description=state.card_desc_f,
@@ -4723,6 +4724,7 @@ def on_card_save(state):
             store.log_user_action("user", "session.attach", "card", c.id,
                       f"Session {new_session_id} attached to '{state.card_title_f}'",
                       severity=_priority_to_severity(state.card_priority_f))
+            store.update_session(new_session_id, pipeline_card_id=c.id)
         notify(state, "success", f"Card '{state.card_title_f}' created.")
     state.card_form_open = False
     _refresh_pipeline(state)
@@ -4881,6 +4883,14 @@ def on_card_history(state):
         columns=["Time", "Action", "Actor", "Details"],
     )
     linked_sessions = store.list_sessions_by_card(cid)
+    # Also include session attached via card.session_id (manual attachment)
+    card = store.get_card(cid)
+    if card and card.session_id:
+        linked_ids = {s.id for s in linked_sessions}
+        if card.session_id not in linked_ids:
+            extra = store.get_session(card.session_id)
+            if extra:
+                linked_sessions.insert(0, extra)
     session_rows = [
         {
             "ID": s.id[:8],

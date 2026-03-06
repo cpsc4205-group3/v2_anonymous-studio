@@ -174,6 +174,18 @@ class MongoStore(StoreBase):
         ).sort("created_at", DESCENDING)
         return [_from_doc(PIISession, d) for d in cursor]
 
+    def update_session(self, session_id: str, **kwargs) -> Optional[PIISession]:
+        doc = self._sessions.find_one({"_id": session_id})
+        if not doc:
+            return None
+        self._sessions.update_one({"_id": session_id}, {"$set": kwargs})
+        self._log(
+            "system", "session.update", "session", session_id,
+            f"Updated session: {', '.join(kwargs.keys())}",
+        )
+        updated = self._sessions.find_one({"_id": session_id})
+        return _from_doc(PIISession, updated) if updated else None
+
     # ── PipelineCard ──────────────────────────────────────────────────────────
 
     def add_card(self, card: PipelineCard) -> PipelineCard:

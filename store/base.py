@@ -48,6 +48,14 @@ class StoreBase(ABC):
     def list_sessions_by_card(self, card_id: str) -> List[PIISession]:
         """All sessions linked to a specific pipeline card, newest first."""
 
+    @abstractmethod
+    def update_session(self, session_id: str, **kwargs) -> Optional[PIISession]:
+        """Update fields on an existing session.
+
+        Returns the updated session or None if session_id not found.
+        Emits a ``session.update`` audit entry on success.
+        """
+
     # ── Pipeline Cards ─────────────────────────────────────────────────────────
 
     @abstractmethod
