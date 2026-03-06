@@ -4689,6 +4689,7 @@ def on_card_save(state):
     new_session_id = None if sel == "(none)" else sel.split(" — ")[0].strip()
     if state.card_id_edit:
         existing = store.get_card(state.card_id_edit)
+        old_session_id = existing.session_id if existing else None
         store.update_card(state.card_id_edit,
                           title=state.card_title_f, description=state.card_desc_f,
                           status=state.card_status_f, assignee=state.card_assign_f,
@@ -4698,7 +4699,7 @@ def on_card_save(state):
         store.log_user_action("user", "pipeline.update", "card", state.card_id_edit,
                   f"Updated '{state.card_title_f}'",
                   severity=_priority_to_severity(state.card_priority_f))        # Write SESSION_ATTACHED only when session actually changed
-        if new_session_id and (not existing or existing.session_id != new_session_id):
+        if new_session_id and old_session_id != new_session_id:
             # Prevent duplicate: check no other card already holds this session
             all_cards = store.list_cards()
             already = any(
