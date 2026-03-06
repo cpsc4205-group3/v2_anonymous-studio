@@ -79,6 +79,13 @@ class MemoryStore(StoreBase):
     def list_sessions(self) -> List[PIISession]:
         return sorted(self._sessions.values(), key=lambda s: s.created_at, reverse=True)
 
+    def list_sessions_by_card(self, card_id: str) -> List[PIISession]:
+        return sorted(
+            [s for s in self._sessions.values() if s.pipeline_card_id == card_id],
+            key=lambda s: s.created_at,
+            reverse=True,
+        )
+
     # ── Pipeline Cards ─────────────────────────────────────────────────────────
 
     def add_card(self, card: PipelineCard) -> PipelineCard:

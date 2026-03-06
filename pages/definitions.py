@@ -481,8 +481,11 @@ Done <|{kanban_done_len}|text|class_name=kh-cnt|>
 |>
 |>
 
-<|{card_audit_open}|dialog|title=Card Audit History|on_action=on_card_history_close|width=700px|
-<|{card_audit_data}|table|columns=Time;Action;Actor;Details|show_all=False|page_size=12|>
+<|{card_audit_open}|dialog|title=Card History|on_action=on_card_history_close|width=760px|
+<|Sessions|text|class_name=sh|>
+<|{card_sessions_data}|table|columns=ID;Title;Operator;Entities;Source;Created|show_all=False|page_size=6|>
+<|Audit Trail|text|class_name=sh|>
+<|{card_audit_data}|table|columns=Time;Action;Actor;Details|show_all=False|page_size=8|>
 <|Close|button|on_action=on_card_history_close|class_name=secondary|>
 |>
 
