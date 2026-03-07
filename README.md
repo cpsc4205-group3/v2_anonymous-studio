@@ -100,8 +100,7 @@ Then open `config.toml` in VS Code — Taipy Studio will show it in the Taipy Co
 export ANON_MODE=standalone
 export ANON_WORKERS=8
 export ANON_RAW_INPUT_BACKEND=mongo
-export ANON_
-MONGO_URI=mongodb://localhost:27017/anon_studio
+export ANON_MONGO_URI=mongodb://localhost:27017/anon_studio
 export ANON_MONGO_WRITE_BATCH=5000
 taipy run main.py
 ```
