@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://unpkg.com/@signozhq/design-tokens@2.1.2/dist/style.css\")",
+      "Bash(curl -s \"https://unpkg.com/@signozhq/design-tokens@2.1.2/dist/themes/signoz-tokens.css\")",
+      "Bash(marimo --help)",
+      "Bash(marimo run --help)",
+      "Bash(marimo edit --help)",
+      "Read(//temp/readonly/**)",
+      "Read(//tmp/**)"
+    ]
+  }
+}

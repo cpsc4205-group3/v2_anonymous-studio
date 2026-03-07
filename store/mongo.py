@@ -138,6 +138,7 @@ class MongoStore(StoreBase):
         self._cards.create_index([("status", ASCENDING), ("updated_at", DESCENDING)])
         self._appts.create_index([("scheduled_for", ASCENDING), ("status", ASCENDING)])
         self._audit.create_index([("resource_id", ASCENDING), ("timestamp", DESCENDING)])
+        self._audit.create_index([("timestamp", DESCENDING)])  # time-window scans
         self._sessions.create_index([("created_at", DESCENDING)])
 
     def _log(self, actor: str, action: str, resource_type: str,

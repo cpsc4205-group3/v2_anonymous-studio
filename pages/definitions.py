@@ -1,5 +1,226 @@
 """Taipy page markup definitions for Anonymous Studio."""
 
+from taipy.gui import notify
+
+
+def _dispatch_app_action(state, callback_name: str, id=None):
+    """Resolve and call an on_action callback from app.py with signature fallback."""
+    try:
+        from app import __dict__ as app_symbols  # late import avoids circular import at startup
+        callback = app_symbols.get(callback_name)
+        if callback is None:
+            raise AttributeError(f"Missing callback: {callback_name}")
+        try:
+            return callback(state, id)
+        except TypeError:
+            return callback(state)
+    except Exception:
+        notify(state, "error", f"Action '{callback_name}' is unavailable.")
+        return None
+
+
+def _dispatch_app_change(state, callback_name: str, var_name, var_value):
+    """Resolve and call an on_change callback from app.py."""
+    try:
+        from app import __dict__ as app_symbols  # late import avoids circular import at startup
+        callback = app_symbols.get(callback_name)
+        if callback is None:
+            raise AttributeError(f"Missing callback: {callback_name}")
+        return callback(state, var_name, var_value)
+    except Exception:
+        notify(state, "error", f"Change handler '{callback_name}' is unavailable.")
+        return None
+
+
+# ─── on_action wrappers ───────────────────────────────────────────────────────
+
+def on_appt_cancel(state, id=None):
+    return _dispatch_app_action(state, "on_appt_cancel", id)
+
+def on_appt_delete(state, id=None):
+    return _dispatch_app_action(state, "on_appt_delete", id)
+
+def on_appt_edit(state, id=None):
+    return _dispatch_app_action(state, "on_appt_edit", id)
+
+def on_appt_new(state, id=None):
+    return _dispatch_app_action(state, "on_appt_new", id)
+
+def on_appt_save(state, id=None):
+    return _dispatch_app_action(state, "on_appt_save", id)
+
+def on_appt_select(state, id=None):
+    return _dispatch_app_action(state, "on_appt_select", id)
+
+def on_attest_cancel(state, id=None):
+    return _dispatch_app_action(state, "on_attest_cancel", id)
+
+def on_attest_confirm(state, id=None):
+    return _dispatch_app_action(state, "on_attest_confirm", id)
+
+def on_attest_open(state, id=None):
+    return _dispatch_app_action(state, "on_attest_open", id)
+
+def on_audit_clear(state, id=None):
+    return _dispatch_app_action(state, "on_audit_clear", id)
+
+def on_audit_filter(state, id=None):
+    return _dispatch_app_action(state, "on_audit_filter", id)
+
+def on_card_back(state, id=None):
+    return _dispatch_app_action(state, "on_card_back", id)
+
+def on_card_cancel(state, id=None):
+    return _dispatch_app_action(state, "on_card_cancel", id)
+
+def on_card_delete(state, id=None):
+    return _dispatch_app_action(state, "on_card_delete", id)
+
+def on_card_edit(state, id=None):
+    return _dispatch_app_action(state, "on_card_edit", id)
+
+def on_card_forward(state, id=None):
+    return _dispatch_app_action(state, "on_card_forward", id)
+
+def on_card_history(state, id=None):
+    return _dispatch_app_action(state, "on_card_history", id)
+
+def on_card_history_close(state, id=None):
+    return _dispatch_app_action(state, "on_card_history_close", id)
+
+def on_card_new(state, id=None):
+    return _dispatch_app_action(state, "on_card_new", id)
+
+def on_card_pick(state, id=None):
+    return _dispatch_app_action(state, "on_card_pick", id)
+
+def on_card_save(state, id=None):
+    return _dispatch_app_action(state, "on_card_save", id)
+
+def on_dash_go_analyze(state, id=None):
+    return _dispatch_app_action(state, "on_dash_go_analyze", id)
+
+def on_dash_seed_demo(state, id=None):
+    return _dispatch_app_action(state, "on_dash_seed_demo", id)
+
+def on_download(state, id=None):
+    return _dispatch_app_action(state, "on_download", id)
+
+def on_export_audit_csv(state, id=None):
+    return _dispatch_app_action(state, "on_export_audit_csv", id)
+
+def on_export_audit_json(state, id=None):
+    return _dispatch_app_action(state, "on_export_audit_json", id)
+
+def on_export_telemetry_csv(state, id=None):
+    return _dispatch_app_action(state, "on_export_telemetry_csv", id)
+
+def on_file_upload(state, id=None):
+    return _dispatch_app_action(state, "on_file_upload", id)
+
+def on_job_adv_close(state, id=None):
+    return _dispatch_app_action(state, "on_job_adv_close", id)
+
+def on_job_adv_open(state, id=None):
+    return _dispatch_app_action(state, "on_job_adv_open", id)
+
+def on_job_cancel(state, id=None):
+    return _dispatch_app_action(state, "on_job_cancel", id)
+
+def on_job_remove(state, id=None):
+    return _dispatch_app_action(state, "on_job_remove", id)
+
+def on_menu_action(state, id=None):
+    return _dispatch_app_action(state, "on_menu_action", id)
+
+def on_poll_progress(state, id=None):
+    return _dispatch_app_action(state, "on_poll_progress", id)
+
+def on_promote_primary(state, id=None):
+    return _dispatch_app_action(state, "on_promote_primary", id)
+
+def on_qt_analyze(state, id=None):
+    return _dispatch_app_action(state, "on_qt_analyze", id)
+
+def on_qt_anonymize(state, id=None):
+    return _dispatch_app_action(state, "on_qt_anonymize", id)
+
+def on_qt_clear(state, id=None):
+    return _dispatch_app_action(state, "on_qt_clear", id)
+
+def on_qt_download_anonymized(state, id=None):
+    return _dispatch_app_action(state, "on_qt_download_anonymized", id)
+
+def on_qt_download_entities(state, id=None):
+    return _dispatch_app_action(state, "on_qt_download_entities", id)
+
+def on_qt_load_sample(state, id=None):
+    return _dispatch_app_action(state, "on_qt_load_sample", id)
+
+def on_qt_save_session(state, id=None):
+    return _dispatch_app_action(state, "on_qt_save_session", id)
+
+def on_qt_settings_close(state, id=None):
+    return _dispatch_app_action(state, "on_qt_settings_close", id)
+
+def on_qt_settings_open(state, id=None):
+    return _dispatch_app_action(state, "on_qt_settings_open", id)
+
+def on_refresh_dashboard(state, id=None):
+    return _dispatch_app_action(state, "on_refresh_dashboard", id)
+
+def on_refresh_telemetry(state, id=None):
+    return _dispatch_app_action(state, "on_refresh_telemetry", id)
+
+def on_select_job(state, id=None):
+    return _dispatch_app_action(state, "on_select_job", id)
+
+def on_store_apply(state, id=None):
+    return _dispatch_app_action(state, "on_store_apply", id)
+
+def on_store_settings_close(state, id=None):
+    return _dispatch_app_action(state, "on_store_settings_close", id)
+
+def on_store_settings_open(state, id=None):
+    return _dispatch_app_action(state, "on_store_settings_open", id)
+
+def on_submit_job(state, id=None):
+    return _dispatch_app_action(state, "on_submit_job", id)
+
+def on_ui_demo_refresh(state, id=None):
+    return _dispatch_app_action(state, "on_ui_demo_refresh", id)
+
+def on_whatif_compare(state, id=None):
+    return _dispatch_app_action(state, "on_whatif_compare", id)
+
+
+# ─── on_change wrappers ───────────────────────────────────────────────────────
+
+def on_dash_filters_change(state, var_name, var_value):
+    return _dispatch_app_change(state, "on_dash_filters_change", var_name, var_value)
+
+def on_qt_ner_model_change(state, var_name, var_value):
+    return _dispatch_app_change(state, "on_qt_ner_model_change", var_name, var_value)
+
+def on_submission_status_change(state, var_name, var_value):
+    return _dispatch_app_change(state, "on_submission_status_change", var_name, var_value)
+
+def on_ui_demo_filters_change(state, var_name, var_value):
+    return _dispatch_app_change(state, "on_ui_demo_filters_change", var_name, var_value)
+
+
+def on_store_settings_open(state, id=None):
+    return _dispatch_app_action(state, "on_store_settings_open", id)
+
+
+def on_store_settings_close(state, id=None):
+    return _dispatch_app_action(state, "on_store_settings_close", id)
+
+
+def on_store_apply(state, id=None):
+    return _dispatch_app_action(state, "on_store_apply", id)
+
+
 # ─── Dashboard ────────────────────────────────────────────────────────────────
 DASH = """
 <|part|class_name=pg pg-dashboard|
@@ -16,7 +237,7 @@ DASH = """
 |>
 
 <|part|class_name=dash-toolbar|
-<|layout|columns=1 1 1 1 8|gap=8px|
+<|layout|columns=1 1 1 1 8|gap=16px|
 <|Refresh|button|on_action=on_refresh_dashboard|class_name=secondary|>
 <|Generate Demo Session|button|on_action=on_dash_seed_demo|class_name=secondary|>
 <|{dash_report_mode}|selector|lov={dash_report_mode_lov}|dropdown=True|label=Mode|on_change=on_dash_filters_change|class_name=fullwidth dash-filter|>
@@ -53,6 +274,15 @@ DASH = """
 |>
 |>
 
+<|part|class_name=dash-svc-bar|
+<|{dash_svc_health_md}|text|mode=md|class_name=svc-health-row|>
+|>
+
+<|part|render={dash_alerts_visible}|class_name=dash-alerts-wrap|
+<|Active Alerts|text|class_name=sh sh-top dash-alerts-title|>
+<|{dash_alerts_md}|text|mode=md|class_name=dash-alerts-body|>
+|>
+
 <|{"*Start by analyzing text, creating pipeline cards, or scheduling reviews — data will appear here.*"}|text|mode=md|render={not (dash_stage_chart_visible or dash_entity_chart_visible or dash_has_reviews)}|class_name=audit-stmt|>
 
 <|part|render={dash_has_reviews}|class_name=dash-upcoming|
@@ -65,7 +295,7 @@ DASH = """
 <|layout|columns=1 1|gap=24px|
 <|part|render={dash_stage_chart_visible}|class_name=settings-panel dash-panel|
 <|Pipeline Health|text|class_name=sh sh-top|>
-<|layout|columns=1 1 1|gap=10px|
+<|layout|columns=1 1 1|gap=16px|
 <|{dash_completion_pct}|metric|title=Completion %|delta={dash_completion_pct_delta}|delta_color=normal|format=%.0f|type=linear|min=0|max=100|>
 <|{dash_inflight_cards}|metric|title=In-Flight Cards|delta={dash_inflight_cards_delta}|delta_color=normal|format=%d|>
 <|{dash_backlog_cards}|metric|title=Backlog|delta={dash_backlog_cards_delta}|delta_color=inversed|format=%d|>
@@ -83,7 +313,7 @@ DASH = """
 <|part|render={dash_entity_chart_visible}|class_name=settings-panel dash-panel entity-mix-panel|
 <|PII Entity Analysis|text|class_name=sh sh-top|>
 <|{dash_entity_report_md}|text|mode=md|class_name=audit-stmt entity-mix-summary|>
-<|layout|columns=1 1|gap=12px|
+<|layout|columns=1 1|gap=16px|
 <|{dash_entity_dominance_pct}|metric|title=Dominant Share %|format=%.1f|type=none|>
 <|{dash_kpi_entities_total}|metric|title=Total Detections|format=%d|type=none|>
 |>
@@ -162,12 +392,6 @@ JOBS = """
 <|Upload CSV or Excel files for bulk PII anonymization in the background|text|class_name=page-sub|hover_text=Accepted formats: .csv, .xlsx, .xls up to 50 MB. Configure method and threshold, then run and monitor progress here.|>
 |>
 
-<|layout|columns=1 1 10|gap=8px|
-<|Run Job|button|on_action=on_submit_job|render={job_file_content is not None}|>
-<|Refresh|button|on_action=on_poll_progress|class_name=secondary|>
-<|part|>
-|>
-
 <|layout|columns=1 1 1 1|gap=12px|
 <|{job_kpi_total}|metric|title=Total Jobs|format=%d|type=none|>
 <|{job_kpi_running}|metric|title=Running|format=%d|delta_color=normal|type=none|>
@@ -182,10 +406,8 @@ JOBS = """
 <|Store|text|class_name=banner-label|>
 <|{store_ok}|status|>
 <|{store_status_label}|button|on_action=on_store_settings_open|class_name=store-mode-pill plain|hover_text={store_status_hover}|>
-<|Raw DataNode|text|class_name=banner-label|>
-<|{raw_input_ok}|status|>
-<|{raw_input_status_label}|button|on_action=on_job_adv_open|class_name=store-mode-pill plain|hover_text={raw_input_status_hover}|>
-<|Settings|button|on_action=on_store_settings_open|class_name=secondary plain ml-auto|hover_text=Change store backend|>
+<|Refresh|button|on_action=on_poll_progress|class_name=secondary plain ml-auto|hover_text=Poll active job progress|>
+<|Settings|button|on_action=on_store_settings_open|class_name=secondary plain|hover_text=Change store backend|>
 |>
 
 <|{store_settings_open}|dialog|title=Store Settings|width=640px|
@@ -323,11 +545,14 @@ JOBS = """
 |>
 |>
 
-<|part|render={job_view_tab=="Errors / Audit"}|class_name=panel|
+<|part|render={job_view_tab=="Errors"}|class_name=panel|
 <|Errors & Audit|text|class_name=sh sh-top|>
 <|{job_errors_data}|table|columns=Time;Source;Details;Severity|cell_class_name[Severity]=severity_cell_class|page_size=10|show_all=False|>
 <|Go to Audit Log for full event history and filtering.|text|class_name=inline-hint|>
-<|Task Orchestration Interface|text|class_name=sh|>
+|>
+
+<|part|render={job_view_tab=="Orchestration"}|class_name=panel|
+<|Task Orchestration Interface|text|class_name=sh sh-top|>
 <|{orchestration_scenario}|scenario_selector|>
 <|part|render={orchestration_scenario is not None}|
 <|{orchestration_scenario}|scenario|on_submission_change=on_submission_status_change|>

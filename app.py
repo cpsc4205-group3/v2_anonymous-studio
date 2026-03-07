@@ -462,7 +462,7 @@ job_processed_text = "0 / 0 rows"
 job_active_started = 0.0
 job_adv_open       = False
 job_view_tab       = "Results"
-job_view_tab_lov   = ["Results", "Job History", "Data Nodes", "Errors / Audit"]
+job_view_tab_lov   = ["Results", "Job History", "Data Nodes", "Errors", "Orchestration"]
 orchestration_scenario = None
 orchestration_job      = None
 ops_status_items: List[str] = ["Run health: Idle", "Submission: —", "Store: —"]
@@ -507,6 +507,12 @@ except Exception:
 # Keyed by get_state_id(state) so concurrent users never share each other's uploads.
 _FILE_CACHE = APP_CTX.file_cache
 _BURNDOWN_CACHE = APP_CTX.burndown_cache
+_STATS_CACHE = APP_CTX.stats_cache
+_SESSIONS_CACHE = APP_CTX.sessions_cache
+try:
+    _DASH_CACHE_TTL_SEC = max(0.0, float(os.environ.get("ANON_DASH_CACHE_TTL_SEC", "5") or "5"))
+except Exception:
+    _DASH_CACHE_TTL_SEC = 5.0
 
 
 def _progress_from_sources(job_id: str) -> Dict[str, Any]:
@@ -713,6 +719,9 @@ dash_priority_chart_visible = False
 dash_ops_trend_visible = False
 dash_map_visible = False
 dash_map_md = ""
+dash_alerts_md = ""
+dash_alerts_visible = False
+dash_svc_health_md = ""
 
 # Engine Performance panel (populated by _refresh_dashboard from session timing)
 # Numeric types are required by the native Taipy metric / indicator widgets.
@@ -1950,6 +1959,30 @@ def _refresh_dashboard_displays(state, by_s: Dict[str, int]) -> None:
     )
 
 
+def _cached_stats() -> Dict[str, Any]:
+    """Return store.stats() from in-process TTL cache (default TTL 5 s)."""
+    now = time.monotonic()
+    if _STATS_CACHE["data"] is None or (now - _STATS_CACHE["ts"]) > _DASH_CACHE_TTL_SEC:
+        _STATS_CACHE["data"] = store.stats()
+        _STATS_CACHE["ts"] = now
+    return _STATS_CACHE["data"]
+
+
+def _cached_sessions() -> list:
+    """Return store.list_sessions() from in-process TTL cache (default TTL 5 s)."""
+    now = time.monotonic()
+    if _SESSIONS_CACHE["data"] is None or (now - _SESSIONS_CACHE["ts"]) > _DASH_CACHE_TTL_SEC:
+        _SESSIONS_CACHE["data"] = list(store.list_sessions())
+        _SESSIONS_CACHE["ts"] = now
+    return _SESSIONS_CACHE["data"]
+
+
+def _invalidate_store_caches() -> None:
+    """Force next dashboard refresh to re-query the store (call after writes)."""
+    _STATS_CACHE["ts"] = 0.0
+    _SESSIONS_CACHE["ts"] = 0.0
+
+
 def _refresh_dashboard(state):
     def _parse_dt(value: Any) -> Optional[datetime]:
         if isinstance(value, datetime):
@@ -1992,23 +2025,28 @@ def _refresh_dashboard(state):
         except Exception:
             return False
 
-    st = store.stats()
+    st = _cached_stats()
     prev_completion_pct = int(getattr(state, "dash_completion_pct", 0) or 0)
     prev_inflight_cards = int(getattr(state, "dash_inflight_cards", 0) or 0)
     prev_backlog_cards = int(getattr(state, "dash_backlog_cards", 0) or 0)
-    _dash_sessions = store.list_sessions()   # hoist — reused by entity chart, trend, perf panel
+    _dash_sessions = _cached_sessions()   # hoist — reused by entity chart, trend, perf panel
     state.dash_cards_total    = sum(st["pipeline_by_status"].values())
     state.dash_cards_attested = st["attested_cards"]
     state.dash_kpi_entities_total = st.get("total_entities_redacted", 0)
-    state.dash_kpi_reviews_scheduled = len([
-        a for a in store.list_appointments() if a.status == "scheduled"
-    ])
+    _dash_appointments = store.list_appointments()  # hoist — reused for KPI, upcoming, alerts
+    _now_iso = _now()
+    state.dash_kpi_reviews_scheduled = sum(
+        1 for a in _dash_appointments if a.status == "scheduled"
+    )
     all_jobs = tc.get_jobs()
     state.dash_jobs_total   = len(_SCENARIOS)
     state.dash_jobs_running = sum(1 for j in all_jobs if j.status == Status.RUNNING)
     state.dash_jobs_done    = sum(1 for j in all_jobs if j.status == Status.COMPLETED)
     state.dash_jobs_failed  = sum(1 for j in all_jobs if j.status == Status.FAILED)
-    upcoming = store.upcoming_appointments(4)
+    upcoming = sorted(
+        [a for a in _dash_appointments if a.status == "scheduled" and a.scheduled_for >= _now_iso],
+        key=lambda a: a.scheduled_for,
+    )[:4]
     html = []
     import html as _html
     for a in upcoming:
@@ -2433,6 +2471,43 @@ def _refresh_dashboard(state):
         state.dash_perf_figure   = {}
         state.perf_telemetry_table = pd.DataFrame(columns=["Session", "ms"])
 
+    # ── Alert panel (Signoz-style threshold checks) ───────────────────────────
+    total_cards = sum(st["pipeline_by_status"].values())
+    alert_lines = []
+    if state.dash_jobs_failed > 0:
+        n = state.dash_jobs_failed
+        alert_lines.append(
+            f"🔴 **{n} failed job{'s' if n != 1 else ''}** — inspect in Batch Jobs"
+        )
+    overdue = [
+        a for a in _dash_appointments
+        if a.status == "scheduled" and a.scheduled_for < _now_iso
+    ]
+    if overdue:
+        n = len(overdue)
+        alert_lines.append(
+            f"🔴 **{n} overdue review{'s' if n != 1 else ''}** — past scheduled time"
+        )
+    if state.dash_backlog_cards > 15:
+        alert_lines.append(
+            f"🟡 **High backlog** — {state.dash_backlog_cards} cards waiting to start"
+        )
+    if total_cards >= 5 and state.dash_completion_pct < 20:
+        alert_lines.append(
+            f"🟡 **Low completion** — {state.dash_completion_pct}% of pipeline cards done"
+        )
+    state.dash_alerts_visible = bool(alert_lines)
+    state.dash_alerts_md = "  \n".join(alert_lines) if alert_lines else ""
+
+    # ── Service health summary ────────────────────────────────────────────────
+    nlp_icon = "🟢" if getattr(state, "spacy_ok", True) else "🔴"
+    store_icon = "🟢" if getattr(state, "store_ok", True) else "🔴"
+    orch_icon = "🟡" if state.dash_jobs_failed > 0 else "🟢"
+    state.dash_svc_health_md = (
+        f"{nlp_icon} **NLP**  ·  {store_icon} **Store**  ·  {orch_icon} **Orchestrator**"
+        f"  ·  **{state.dash_jobs_running}** running  ·  **{state.dash_jobs_done}** done"
+    )
+
     state.dash_has_reviews = bool(upcoming)
     state.dash_has_any_data = (
         state.dash_has_reviews
@@ -2459,8 +2534,8 @@ def _refresh_ui_demo(state) -> None:
     state.ui_demo_top_n = top_n
     state.ui_demo_mode = mode
 
-    stats = store.stats()
-    sessions = list(store.list_sessions())
+    stats = _cached_stats()
+    sessions = _cached_sessions()
     entity_counts = dict(stats.get("entity_breakdown", {}) or {})
     sorted_entities = sorted(entity_counts.items(), key=lambda x: (-x[1], x[0]))
     total_entities = int(sum(v for _, v in sorted_entities))
@@ -3396,7 +3471,7 @@ def on_taipy_event(state, event):
             elif "FAILED" in val_up or "ABANDONED" in val_up:
                 store.log_user_action("system", "taipy.job.failed", "job", short_id,
                                       f"Job reached status {val}", severity="warning")
-                notify(state, "error", "A Taipy job failed. Open Errors / Audit for details.")
+                notify(state, "error", "A Taipy job failed. Open the Errors tab for details.")
             elif "CANCELED" in val_up:
                 store.log_user_action("system", "taipy.job.canceled", "job", short_id,
                                       f"Job canceled", severity="info")
@@ -4068,6 +4143,7 @@ def on_qt_save_session(state):
         processing_ms=float(getattr(state, "qt_last_proc_ms", 0.0) or 0.0),
     )
     store.add_session(session)
+    _invalidate_store_caches()
     store.log_user_action("user", "session.save", "session", session.id,
                           f"Saved session '{title}' ({len(counts)} entity types)")
     state.qt_session_saved = True
@@ -4116,8 +4192,9 @@ def on_file_upload(state, action, payload):
         state.job_file_hash = file_hash
         state.job_file_art  = _drunken_bishop(file_hash, name)
         notify(state, "success", f"{name} ready.")
-    except Exception as e:
-        (_log.exception("upload_error"), notify(state, "error", "File upload failed. Check the file and try again."))[1]
+    except Exception:
+        _log.exception("upload_error")
+        notify(state, "error", "File upload failed. Check the file and try again.")
 
 
 def _bg_submit_job(raw_df, config):
@@ -5377,6 +5454,7 @@ def on_dash_seed_demo(state):
     )
     try:
         store.add_session(session)
+        _invalidate_store_caches()
         store.log_user_action(
             "user",
             "session.save",
