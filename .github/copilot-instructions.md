@@ -36,7 +36,7 @@ pytest tests/
 make stress
 ```
 
-Max line length is **120**. Tests live in `tests/` with 10 test files covering store, PII engine, attestation, auth, synthetic text, progress snapshots, and Taipy smoke tests.
+Max line length is **120**. Tests live in `tests/` with 13 test files covering store, PII engine, attestation, auth, synthetic text, progress snapshots, store utilities, MongoDB backend, session-card traceability, and Taipy smoke tests.
 
 ---
 
@@ -72,12 +72,13 @@ anonymous-studio/
 │   ├── __init__.py
 │   └── definitions.py   Taipy page markup strings (DASH, JOBS, PIPELINE, SCHEDULE, AUDIT, QT)
 ├── store/
-│   ├── __init__.py      Factory (get_store) + public exports
+│   ├── __init__.py      Factory (get_store) + public exports (re-exports utils)
 │   ├── base.py          Abstract StoreBase contract (all backends implement this)
 │   ├── models.py        PIISession, PipelineCard, Appointment, AuditEntry dataclasses
 │   ├── memory.py        MemoryStore (in-process dict-based, default)
 │   ├── mongo.py         MongoStore (persistent MongoDB backend)
-│   └── duckdb.py        DuckDBStore (optional alternative)
+│   ├── duckdb.py        DuckDBStore (optional alternative)
+│   └── utils.py         Reusable filter/aggregate helpers (17 functions, re-exported from store)
 ├── services/
 │   ├── app_context.py   AppContext dataclass — shared mutable runtime registries
 │   ├── attestation_crypto.py  Ed25519 signing for compliance attestations
@@ -91,14 +92,19 @@ anonymous-studio/
 ├── ui/
 │   └── theme.py         Plotly chart theme/styling
 ├── images/              SVG icons used by the navigation menu
-├── tests/               pytest test suite (10 test files)
+├── tests/               pytest test suite (13 test files)
 ├── scripts/             Utility scripts (key generation, mongo check, stress)
 ├── deploy/
 │   ├── auth-proxy/      oauth2-proxy + nginx reverse proxy starter
 │   └── grafana/         Prometheus + Grafana stack
 ├── docs/
-│   ├── deployment.md    Deployment notes
-│   └── spacy.md         spaCy usage guide
+│   ├── deployment.md        Deployment notes
+│   ├── spacy.md             spaCy usage guide
+│   ├── feature-parity.md    PoC vs. v2 feature status (canonical tracker)
+│   ├── all-stories.md       All 15 pipeline cards with acceptance criteria
+│   ├── store-utils.md       store/utils API reference
+│   ├── QUICKSTART.md        Quick-start guide
+│   └── SUMMARY.md           Sprint / recovery summary
 ├── requirements.txt
 ├── Makefile             Stress tests, mongo-check, auth-proxy up/down
 ├── pytest.ini           Pytest configuration
@@ -114,7 +120,7 @@ anonymous-studio/
 | `core_config.py` | taipy.core DataNodes, Task, Scenario, Orchestrator bootstrap |
 | `tasks.py` | `run_pii_anonymization()` — the function the Orchestrator executes |
 | `pii_engine.py` | Presidio Analyzer + Anonymizer wrapper; spaCy model resolution |
-| `store/` | Multi-backend data store package (memory, MongoDB, DuckDB) |
+| `store/` | Multi-backend data store package (memory, MongoDB, DuckDB) + `utils.py` helpers |
 | `services/` | Extracted business logic (attestation, auth, geo, jobs, telemetry) |
 | `pages/` | Taipy Markdown DSL page definitions |
 
@@ -174,6 +180,14 @@ Status function signature: `(state, status_or_count, *user_status_function_args,
 ```python
 from store import get_store, describe_store_backend, get_store_backend_mode
 from store import PIISession, PipelineCard, Appointment, _now, _uid
+# Data access utilities — all re-exported from store/utils.py via store/__init__.py
+from store import (
+    filter_audit_entries, filter_appointments_by_status, filter_appointments_by_time_range,
+    get_scheduled_appointments, filter_cards_by_priority, filter_cards_by_status,
+    filter_cards_attested, filter_sessions_by_time_window, filter_sessions_by_entities,
+    count_by_severity, count_by_priority, count_sessions_by_operator,
+    is_in_time_window, parse_time_window, filter_by_predicate, group_by, count_by,
+)
 ```
 
 The `StoreBase` abstract class defines the full public API — change backend internals freely, keep these signatures stable:
@@ -188,6 +202,20 @@ Backend selection via `ANON_STORE_BACKEND` env var: `memory` (default), `mongo`,
 
 **Known store bugs (as of Sprint 3-1):**
 - `update_appointment` and `delete_appointment` leave no audit trail.
+
+### `store/utils.py` — data access utilities
+`store/utils.py` provides 17 reusable helper functions for filtering and aggregating store data. They are all re-exported from the `store` package so callers can import directly from `store`.
+
+| Category | Functions |
+|----------|-----------|
+| Time window | `parse_time_window(window)`, `is_in_time_window(ts, window)` |
+| Audit | `filter_audit_entries(entries, ...)`, `count_by_severity(entries)` |
+| Appointments | `filter_appointments_by_status`, `filter_appointments_by_time_range`, `get_scheduled_appointments` |
+| Cards | `filter_cards_by_priority`, `filter_cards_by_status`, `filter_cards_attested` |
+| Sessions | `filter_sessions_by_time_window`, `filter_sessions_by_entities`, `count_sessions_by_operator` |
+| Generic | `filter_by_predicate(items, fn)`, `group_by(items, key_fn)`, `count_by(items, key_fn)` |
+
+Use these instead of writing inline list comprehensions in `app.py` to keep callbacks readable and testable.
 
 ### spaCy model resolution
 `pii_engine.py::_find_spacy_model()` tries in order: `$SPACY_MODEL` env var → `en_core_web_lg` → `md` → `sm` → `trf` → blank fallback. The blank fallback is intentional for offline/restricted environments. To override, set `SPACY_MODEL` or run `python -m spacy download <name>` and restart.
@@ -677,6 +705,9 @@ Tests live in `tests/` and use pytest. Run with `pytest tests/` or `make stress`
 |-----------|---------------|
 | `test_store.py` | Store backends (sessions, cards, appointments, audit) |
 | `test_store_duckdb.py` | DuckDB-specific store backend |
+| `test_store_mongo.py` | MongoDB backend (using mongomock) — CRUD, status lifecycle, audit trail |
+| `test_store_utils.py` | `store/utils.py` filter/aggregate helpers |
+| `test_session_card_traceability.py` | PIISession ↔ PipelineCard auto-attach, manual attach, audit trail |
 | `test_pii_engine.py` | PII detection/anonymization core |
 | `test_attestation_crypto.py` | Ed25519 signing/verification |
 | `test_auth0_rest.py` | Auth0 JWT validation |
