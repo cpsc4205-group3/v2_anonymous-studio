@@ -552,11 +552,13 @@ AUDIT = """
 |>
 
 <|Filter|text|class_name=sh sh-top|>
-<|layout|columns=3 1 1 1|gap=12px|
+<|layout|columns=3 1 1 1 1 1|gap=12px|
 <|{audit_search}|input|label=Search action / details|class_name=fullwidth|>
 <|{audit_sev}|selector|lov={audit_sev_opts}|dropdown=True|label=Severity|>
 <|Apply|button|on_action=on_audit_filter|>
 <|Clear|button|on_action=on_audit_clear|class_name=secondary|>
+<|Export CSV|button|on_action=on_export_audit_csv|class_name=secondary|>
+<|Export JSON|button|on_action=on_export_audit_json|class_name=secondary|>
 |>
 
 <|{audit_table}|table|columns=Time;Actor;Action;Resource;Details;Severity|cell_class_name[Severity]=severity_cell_class|show_all=False|page_size=20|>

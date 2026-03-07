@@ -338,3 +338,74 @@ def test_on_dash_seed_demo_notifies_when_store_save_fails(monkeypatch):
 
     assert state.qt_session_saved is False
     assert captured_notify and captured_notify[-1][0] == "error"
+
+
+# ── Audit Log Export Tests ────────────────────────────────────────────────────
+
+def test_on_export_audit_csv_downloads_csv_file(monkeypatch):
+    """Test that on_export_audit_csv downloads the audit table as CSV."""
+    audit_df = pd.DataFrame([
+        {"Time": "12:00:00", "Actor": "user1", "Action": "login", "Resource": "auth/session", "Details": "Logged in", "Severity": "info"},
+        {"Time": "12:05:00", "Actor": "user2", "Action": "create", "Resource": "pipeline/card-1", "Details": "Created card", "Severity": "info"},
+    ])
+    state = SimpleNamespace(audit_table=audit_df)
+    captured = {}
+
+    monkeypatch.setattr(app, "download", lambda _state, content, name: captured.update({"content": content, "name": name}))
+    monkeypatch.setattr(app.store, "log_user_action", lambda *args, **kwargs: None)
+    monkeypatch.setattr(app, "notify", lambda *args, **kwargs: None)
+
+    app.on_export_audit_csv(state)
+
+    assert captured["name"] == "audit_log.csv"
+    assert b"Time,Actor,Action,Resource,Details,Severity" in captured["content"]
+    assert b"user1" in captured["content"]
+    assert b"user2" in captured["content"]
+
+
+def test_on_export_audit_csv_warns_on_empty_table(monkeypatch):
+    """Test that exporting an empty audit table shows a warning."""
+    state = SimpleNamespace(audit_table=pd.DataFrame())
+    captured_notify = []
+
+    monkeypatch.setattr(app, "download", lambda _state, content, name: None)
+    monkeypatch.setattr(app, "notify", lambda _state, level, msg: captured_notify.append((level, msg)))
+
+    app.on_export_audit_csv(state)
+
+    assert captured_notify and captured_notify[-1] == ("warning", "No audit entries to export.")
+
+
+def test_on_export_audit_json_downloads_json_file(monkeypatch):
+    """Test that on_export_audit_json downloads the audit table as JSON."""
+    import json
+    audit_df = pd.DataFrame([
+        {"Time": "12:00:00", "Actor": "admin", "Action": "delete", "Resource": "card/123", "Details": "Deleted card", "Severity": "warning"},
+    ])
+    state = SimpleNamespace(audit_table=audit_df)
+    captured = {}
+
+    monkeypatch.setattr(app, "download", lambda _state, content, name: captured.update({"content": content, "name": name}))
+    monkeypatch.setattr(app.store, "log_user_action", lambda *args, **kwargs: None)
+    monkeypatch.setattr(app, "notify", lambda *args, **kwargs: None)
+
+    app.on_export_audit_json(state)
+
+    assert captured["name"] == "audit_log.json"
+    data = json.loads(captured["content"].decode())
+    assert len(data) == 1
+    assert data[0]["Actor"] == "admin"
+    assert data[0]["Action"] == "delete"
+
+
+def test_on_export_audit_json_warns_on_empty_table(monkeypatch):
+    """Test that exporting an empty audit table as JSON shows a warning."""
+    state = SimpleNamespace(audit_table=pd.DataFrame())
+    captured_notify = []
+
+    monkeypatch.setattr(app, "download", lambda _state, content, name: None)
+    monkeypatch.setattr(app, "notify", lambda _state, level, msg: captured_notify.append((level, msg)))
+
+    app.on_export_audit_json(state)
+
+    assert captured_notify and captured_notify[-1] == ("warning", "No audit entries to export.")

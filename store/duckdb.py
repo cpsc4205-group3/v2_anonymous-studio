@@ -11,6 +11,7 @@ import dataclasses
 import json
 import os
 import tempfile
+import threading
 from typing import Any, Dict, List, Optional
 
 from store.base import StoreBase
@@ -20,6 +21,16 @@ from store.models import PIISession, PipelineCard, Appointment, AuditEntry, _now
 _VALID_CARD_STATUSES = frozenset({"backlog", "in_progress", "review", "done"})
 _VALID_APPT_STATUSES = frozenset({"scheduled", "completed", "cancelled"})
 _VALID_SEVERITIES = frozenset({"info", "warning", "critical"})
+
+# Allowlist: maps each known table to its single sort column.
+# Used to validate arguments before they are interpolated into SQL, preventing
+# SQL injection if this code is ever called with unexpected table/column values.
+_SORT_COLUMN: Dict[str, str] = {
+    "pii_sessions":   "created_at",
+    "pipeline_cards": "updated_at",
+    "appointments":   "scheduled_for",
+    "audit_log":      "timestamp",
+}
 
 
 def _default_duckdb_path() -> str:
@@ -51,6 +62,10 @@ class DuckDBStore(StoreBase):
         self._path = os.path.abspath(path or _default_duckdb_path())
         os.makedirs(os.path.dirname(self._path), exist_ok=True)
         self._conn = duckdb.connect(self._path)
+        # RLock: the scheduler daemon writes from its own thread concurrently with
+        # GUI callbacks. Reentrant so that _log -> _upsert paths on the same thread
+        # don't deadlock.
+        self._lock = threading.RLock()
         self._ensure_schema()
         if seed and not self._has_any_data():
             self._seed_demo_data()
@@ -58,80 +73,88 @@ class DuckDBStore(StoreBase):
     # ── Schema / low-level helpers ───────────────────────────────────────────
 
     def _ensure_schema(self) -> None:
-        self._conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS pii_sessions (
-              id VARCHAR PRIMARY KEY,
-              created_at VARCHAR,
-              payload TEXT NOT NULL
-            );
-            """
-        )
-        self._conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS pipeline_cards (
-              id VARCHAR PRIMARY KEY,
-              updated_at VARCHAR,
-              payload TEXT NOT NULL
-            );
-            """
-        )
-        self._conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS appointments (
-              id VARCHAR PRIMARY KEY,
-              scheduled_for VARCHAR,
-              payload TEXT NOT NULL
-            );
-            """
-        )
-        self._conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS audit_log (
-              id VARCHAR PRIMARY KEY,
-              timestamp VARCHAR,
-              payload TEXT NOT NULL
-            );
-            """
-        )
+        with self._lock:
+            self._conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS pii_sessions (
+                  id VARCHAR PRIMARY KEY,
+                  created_at VARCHAR,
+                  payload TEXT NOT NULL
+                );
+                """
+            )
+            self._conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS pipeline_cards (
+                  id VARCHAR PRIMARY KEY,
+                  updated_at VARCHAR,
+                  payload TEXT NOT NULL
+                );
+                """
+            )
+            self._conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS appointments (
+                  id VARCHAR PRIMARY KEY,
+                  scheduled_for VARCHAR,
+                  payload TEXT NOT NULL
+                );
+                """
+            )
+            self._conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS audit_log (
+                  id VARCHAR PRIMARY KEY,
+                  timestamp VARCHAR,
+                  payload TEXT NOT NULL
+                );
+                """
+            )
 
     def _has_any_data(self) -> bool:
-        row = self._conn.execute(
-            """
-            SELECT
-              (SELECT COUNT(*) FROM pii_sessions)
-              + (SELECT COUNT(*) FROM pipeline_cards)
-              + (SELECT COUNT(*) FROM appointments)
-              + (SELECT COUNT(*) FROM audit_log)
-            """
-        ).fetchone()
+        with self._lock:
+            row = self._conn.execute(
+                """
+                SELECT
+                  (SELECT COUNT(*) FROM pii_sessions)
+                  + (SELECT COUNT(*) FROM pipeline_cards)
+                  + (SELECT COUNT(*) FROM appointments)
+                  + (SELECT COUNT(*) FROM audit_log)
+                """
+            ).fetchone()
         return bool(row and int(row[0]) > 0)
 
     def _upsert(self, table: str, rid: str, sort_value: str, payload: str) -> None:
-        sort_col = {
-            "pii_sessions": "created_at",
-            "pipeline_cards": "updated_at",
-            "appointments": "scheduled_for",
-            "audit_log": "timestamp",
-        }[table]
-        self._conn.execute(f"DELETE FROM {table} WHERE id = ?", [rid])
-        self._conn.execute(
-            f"INSERT INTO {table} (id, {sort_col}, payload) VALUES (?, ?, ?)",
-            [rid, sort_value, payload],
-        )
+        if table not in _SORT_COLUMN:
+            raise ValueError(f"Unknown table: {table!r}")
+        sort_col = _SORT_COLUMN[table]
+        with self._lock:
+            self._conn.execute(f"DELETE FROM {table} WHERE id = ?", [rid])
+            self._conn.execute(
+                f"INSERT INTO {table} (id, {sort_col}, payload) VALUES (?, ?, ?)",
+                [rid, sort_value, payload],
+            )
 
     def _get_payload(self, table: str, rid: str) -> Optional[str]:
-        row = self._conn.execute(f"SELECT payload FROM {table} WHERE id = ?", [rid]).fetchone()
+        if table not in _SORT_COLUMN:
+            raise ValueError(f"Unknown table: {table!r}")
+        with self._lock:
+            row = self._conn.execute(f"SELECT payload FROM {table} WHERE id = ?", [rid]).fetchone()
         return str(row[0]) if row else None
 
     def _list_payloads(self, table: str, order_col: str, desc: bool = True, limit: Optional[int] = None) -> List[str]:
+        if table not in _SORT_COLUMN:
+            raise ValueError(f"Unknown table: {table!r}")
+        if order_col != _SORT_COLUMN[table]:
+            raise ValueError(f"Invalid order_col {order_col!r} for table {table!r}")
         order = "DESC" if desc else "ASC"
         sql = f"SELECT payload FROM {table} ORDER BY {order_col} {order}"
         params: List[Any] = []
         if isinstance(limit, int) and limit > 0:
             sql += " LIMIT ?"
             params.append(limit)
-        rows = self._conn.execute(sql, params).fetchall()
+        with self._lock:
+            rows = self._conn.execute(sql, params).fetchall()
         return [str(r[0]) for r in rows]
 
     def _log(
@@ -227,7 +250,8 @@ class DuckDBStore(StoreBase):
         card = self.get_card(card_id)
         if not card:
             return False
-        self._conn.execute("DELETE FROM pipeline_cards WHERE id = ?", [card_id])
+        with self._lock:
+            self._conn.execute("DELETE FROM pipeline_cards WHERE id = ?", [card_id])
         self._log("system", "pipeline.delete", "card", card_id, f"Deleted '{card.title}'", severity="warning")
         return True
 
@@ -283,7 +307,8 @@ class DuckDBStore(StoreBase):
         appt = self.get_appointment(appt_id)
         if not appt:
             return False
-        self._conn.execute("DELETE FROM appointments WHERE id = ?", [appt_id])
+        with self._lock:
+            self._conn.execute("DELETE FROM appointments WHERE id = ?", [appt_id])
         self._log("system", "schedule.delete", "appointment", appt_id, f"Deleted '{appt.title}'", severity="warning")
         return True
 
@@ -319,7 +344,10 @@ class DuckDBStore(StoreBase):
         sessions = self.list_sessions()
         cards = self.list_cards()
         appts = self.list_appointments()
-        audit = self.list_audit(limit=200000)
+        with self._lock:
+            audit_count = self._conn.execute(
+                "SELECT COUNT(*) FROM audit_log"
+            ).fetchone()[0]
 
         entity_freq: Dict[str, int] = {}
         total_entities = 0
@@ -343,7 +371,7 @@ class DuckDBStore(StoreBase):
             "entity_breakdown": entity_freq,
             "pipeline_by_status": status_counts,
             "total_appointments": len(appts),
-            "total_audit_entries": len(audit),
+            "total_audit_entries": audit_count,
             "attested_cards": attested,
         }
 

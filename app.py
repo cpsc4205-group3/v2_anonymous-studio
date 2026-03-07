@@ -62,7 +62,17 @@ from pii_engine import (
     highlight_md,
 )
 from pages import PAGES
-from ui.theme import CHART_LAYOUT, DASH_STYLEKIT, MONO_COLORWAY
+from ui.theme import (
+    CHART_LAYOUT,
+    COLOR_ERROR,
+    COLOR_INFO,
+    COLOR_PRIMARY,
+    COLOR_SUCCESS,
+    COLOR_WARN,
+    DASH_STYLEKIT,
+    GEO_DARK_SCALE,
+    MONO_COLORWAY,
+)
 from services.jobs import (
     all_jobs_done_like,
     build_entity_stats_df,
@@ -1366,7 +1376,7 @@ def _refresh_telemetry(state) -> None:
             data=[go.Bar(
                 x=["Created", "Running", "Completed", "Failed", "Canceled"],
                 y=[created, running, completed, failed, canceled],
-                marker_color=["#6F86B9", "#C8A55B", "#79A06F", "#D06A64", "#6F8FA3"],
+                marker_color=[COLOR_PRIMARY, COLOR_WARN, COLOR_SUCCESS, COLOR_ERROR, COLOR_INFO],
             )],
             layout={**CHART_LAYOUT, "title": {"text": "Job Lifecycle Counts", "font": {"size": 13}}},
         )
@@ -1381,7 +1391,7 @@ def _refresh_telemetry(state) -> None:
                     snap.get("rows_processed", 0),
                     snap.get("scenarios_created", 0),
                 ],
-                marker_color=["#8A38F5", "#6F86B9", "#C8A55B"],
+                marker_color=[COLOR_PRIMARY, COLOR_INFO, COLOR_WARN],
             )],
             layout={**CHART_LAYOUT, "title": {"text": "Data Throughput (cumulative)", "font": {"size": 13}}},
         )
@@ -2569,7 +2579,11 @@ def _refresh_ui_demo(state) -> None:
                 labels=labels,
                 parents=[""] * len(labels),
                 values=counts,
-                marker=dict(colors=counts, colorscale="Blues"),
+                marker=dict(
+                    colors=counts,
+                    colorscale=GEO_DARK_SCALE,
+                    line=dict(color="#17191D", width=1),
+                ),
                 textinfo="label+value+percent root",
             )
         )
@@ -2663,8 +2677,17 @@ def _refresh_ui_demo(state) -> None:
         )
         if not tdf.empty:
             timeline_fig = go.Figure()
-            timeline_fig.add_scatter(x=tdf["Date"], y=tdf["Sessions"], mode="lines+markers", name="Sessions")
-            timeline_fig.add_bar(x=tdf["Date"], y=tdf["Entities"], name="Entities", opacity=0.45)
+            timeline_fig.add_scatter(
+                x=tdf["Date"], y=tdf["Sessions"],
+                mode="lines+markers", name="Sessions",
+                line=dict(color=COLOR_PRIMARY, width=2),
+                marker=dict(color=COLOR_PRIMARY, size=5),
+            )
+            timeline_fig.add_bar(
+                x=tdf["Date"], y=tdf["Entities"],
+                name="Entities", opacity=0.5,
+                marker_color=COLOR_SUCCESS,
+            )
             timeline_fig.update_layout(
                 **{
                     **chart_layout,
@@ -3187,12 +3210,15 @@ def _set_qt_entity_state(state, entities: List[Dict[str, Any]]) -> Counter:
             "yaxis": {**chart_layout["yaxis"], "automargin": True},
             "bargap": 0.22,
         }
+        _qt_n = len(qdf)
+        _qt_b = max(0, 6 - _qt_n + 1)
+        _qt_colors = [mono_colorway[min(6, _qt_b + i)] for i in range(_qt_n)]
         fig_qt = go.Figure(
             go.Bar(
                 x=qdf["Count"],
                 y=qdf["Entity Type"],
                 orientation="h",
-                marker=dict(color=mono_colorway[0]),
+                marker=dict(color=_qt_colors),
                 text=[str(int(v)) for v in qdf["Count"]],
                 textposition="outside",
                 cliponaxis=False,
@@ -3692,12 +3718,18 @@ def on_select_done_card(state):
 
 
 # ── Quick-text PII ────────────────────────────────────────────────────────────
+def _parse_word_lists(state) -> tuple[list, list]:
+    """Parse comma-separated allowlist and denylist text from state."""
+    allowlist = [w.strip() for w in state.qt_allowlist_text.split(",") if w.strip()]
+    denylist  = [w.strip() for w in state.qt_denylist_text.split(",") if w.strip()]
+    return allowlist, denylist
+
+
 def on_qt_analyze(state):
     if not state.qt_input.strip():
         notify(state, "warning", "Enter some text first.")
         return
-    allowlist = [w.strip() for w in state.qt_allowlist_text.split(",") if w.strip()]
-    denylist  = [w.strip() for w in state.qt_denylist_text.split(",") if w.strip()]
+    allowlist, denylist = _parse_word_lists(state)
     ents = engine.analyze(
         state.qt_input,
         state.qt_entities,
@@ -3748,8 +3780,7 @@ def on_qt_anonymize(state):
     if not state.qt_input.strip():
         notify(state, "warning", "Enter some text first.")
         return
-    allowlist = [w.strip() for w in state.qt_allowlist_text.split(",") if w.strip()]
-    denylist  = [w.strip() for w in state.qt_denylist_text.split(",") if w.strip()]
+    allowlist, denylist = _parse_word_lists(state)
     t0 = time.perf_counter()
     qt_operator = str(getattr(state, "qt_operator", "replace") or "replace").strip().lower()
     operator_for_engine = "replace" if qt_operator == "synthesize" else qt_operator
@@ -4424,12 +4455,15 @@ def _load_job_results(state, jid: str):
         state.stats_entity_rows = build_entity_stats_df(stats_data)
         if not state.stats_entity_rows.empty and go is not None:
             sdf = state.stats_entity_rows.sort_values("Count", ascending=True)
+            _st_n = len(sdf)
+            _st_b = max(0, 6 - _st_n + 1)
+            _st_colors = [mono_colorway[min(6, _st_b + i)] for i in range(_st_n)]
             fig_stats = go.Figure(
                 go.Bar(
                     x=sdf["Count"],
                     y=sdf["Entity Type"],
                     orientation="h",
-                    marker=dict(color=mono_colorway[0]),
+                    marker=dict(color=_st_colors),
                     text=[str(int(v)) for v in sdf["Count"]],
                     textposition="outside",
                     cliponaxis=False,
@@ -4672,7 +4706,7 @@ def on_whatif_compare(state):
                 go.Bar(
                     x=chart_df["Scenario"],
                     y=chart_df["Entities"],
-                    marker=dict(color=mono_colorway[0]),
+                    marker=dict(color=COLOR_PRIMARY),
                     text=[str(int(v)) for v in chart_df["Entities"]],
                     textposition="outside",
                     cliponaxis=False,
@@ -5038,6 +5072,36 @@ def on_audit_filter(state):
 def on_audit_clear(state):
     state.audit_search = ""; state.audit_sev = "all"
     _refresh_audit(state)
+
+
+def on_export_audit_csv(state):
+    """Download the current audit log as a CSV file."""
+    df = state.audit_table
+    if isinstance(df, pd.DataFrame) and not df.empty:
+        csv_bytes = df.to_csv(index=False).encode()
+        download(state, content=csv_bytes, name="audit_log.csv")
+        store.log_user_action(
+            "system", "audit.export", "audit_log", "csv",
+            f"Exported {len(df)} audit entries as CSV", "info"
+        )
+    else:
+        notify(state, "warning", "No audit entries to export.")
+
+
+def on_export_audit_json(state):
+    """Download the current audit log as a JSON file."""
+    df = state.audit_table
+    if isinstance(df, pd.DataFrame) and not df.empty:
+        import json
+        records = df.to_dict(orient="records")
+        json_bytes = json.dumps(records, indent=2, default=str).encode()
+        download(state, content=json_bytes, name="audit_log.json")
+        store.log_user_action(
+            "system", "audit.export", "audit_log", "json",
+            f"Exported {len(df)} audit entries as JSON", "info"
+        )
+    else:
+        notify(state, "warning", "No audit entries to export.")
 
 
 # ── Telemetry ─────────────────────────────────────────────────────────────────

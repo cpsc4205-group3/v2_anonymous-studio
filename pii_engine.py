@@ -18,13 +18,26 @@ To force a specific model:
 """
 from __future__ import annotations
 import os, re, warnings, logging, tempfile
+
+_HASH_SALT: str = os.environ.get("ANON_HASH_SALT", "anonymous-studio")
 from functools import lru_cache
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
 
-warnings.filterwarnings("ignore")
+# Suppress noisy spaCy/thinc warnings only; preserve all other library warnings.
+warnings.filterwarnings("ignore", module=r"spacy.*")
+warnings.filterwarnings("ignore", module=r"thinc.*")
+warnings.filterwarnings("ignore", module=r"en_core_web.*")
 logging.getLogger("tldextract").setLevel(logging.CRITICAL)
 logging.getLogger("presidio-analyzer").setLevel(logging.CRITICAL)
+
+if _HASH_SALT == "anonymous-studio":
+    warnings.warn(
+        "ANON_HASH_SALT is the public default 'anonymous-studio' — "
+        "set ANON_HASH_SALT to a secret value before processing real PII.",
+        UserWarning,
+        stacklevel=1,
+    )
 
 import spacy
 
@@ -278,7 +291,7 @@ def _get_ops(operator: str, entities_key: tuple) -> Dict:
                                               "from_end": False})
         elif operator == "hash":
             ops[e] = OperatorConfig("hash", {"hash_type": "sha256",
-                                              "salt": "anonymous-studio"})
+                                              "salt": _HASH_SALT})
         else:
             ops[e] = OperatorConfig("replace", {"new_value": f"<{e}>"})
     # Ensure denylist-only detections can always be anonymized.
@@ -293,7 +306,7 @@ def _get_ops(operator: str, entities_key: tuple) -> Dict:
             )
         else:
             ops[CUSTOM_DENYLIST_ENTITY] = OperatorConfig(
-                "hash", {"hash_type": "sha256", "salt": "anonymous-studio"},
+                "hash", {"hash_type": "sha256", "salt": _HASH_SALT},
             )
     _OPS_CACHE[cache_key] = ops
     return ops

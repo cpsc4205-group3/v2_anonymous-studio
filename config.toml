@@ -11,6 +11,8 @@
 [TAIPY]
 
 [CORE]
+# Production: override these paths via ANON_CONFIG_PATH pointing to a separate
+# config.toml — the override mechanism is in core_config.py (_apply_override_config).
 root_folder = "/tmp/anon_studio"
 storage_folder = ".taipy_core/"
 taipy_storage_folder = "/tmp/anon_studio/.taipy"
