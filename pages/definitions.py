@@ -719,7 +719,7 @@ SCHEDULE = """
 <|layout|columns=2 1|gap=24px|
 <|part|class_name=panel|
 <|All Appointments|text|class_name=panel-hd|>
-<|{appt_table}|table|columns=Title;Date / Time;Duration;Attendees;Linked Card;Status|cell_class_name[Status]=status_cell_class|show_all=False|page_size=10|on_action=on_appt_select|>
+<|{appt_table}|table|columns=Title;Date / Time;Duration;Attendees;Linked Card;Status|style[Status]=status_cell_class|show_all=False|page_size=10|on_action=on_appt_select|>
 |>
 <|part|class_name=panel|
 <|Upcoming|text|class_name=panel-hd|>

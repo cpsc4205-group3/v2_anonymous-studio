@@ -1,3 +1,12 @@
+---
+runme:
+  document:
+    relativePath: README.md
+  session:
+    id: 01KK3HD6XASYB4PYXQDN7F2F68
+    updated: 2026-03-07 02:03:20-05:00
+---
+
 # Anonymous Studio — De-Identified Data Pipelines
 
 **CPSC 4205 | Group 3 | Spring 2026**
@@ -85,7 +94,6 @@ Then open `config.toml` in VS Code — Taipy Studio will show it in the Taipy Co
 3. The callback thread calls __`cc.submit_job(df, config)`__
 4. `submit_job` creates a fresh __taipy.core Scenario__, writes the two input DataNodes (`raw_input`, `job_config`), and calls `tc.submit(scenario)`
 5. The Orchestrator picks up the job and runs __`run_pii_anonymization`__ (in `tasks.py`):
-
    - Auto-detects text/PII columns
    - Processes in configurable chunks (default 500 rows)
    - Writes per-chunk progress to __`PROGRESS_REGISTRY`__ dict
@@ -98,11 +106,11 @@ Then open `config.toml` in VS Code — Taipy Studio will show it in the Taipy Co
 
 ```bash
 export ANON_MODE=standalone
-export ANON_WORKERS=8
+export AN**********=8
 export ANON_RAW_INPUT_BACKEND=mongo
 export ANON_
-MONGO_URI=mongodb://localhost:27017/anon_studio
-export ANON_MONGO_WRITE_BATCH=5000
+MO*************db://lo*****st:27017/anon_studio
+export AN***********************00
 taipy run main.py
 ```
 
@@ -112,7 +120,6 @@ No code changes needed — `core_config.py` reads the env vars.
 ### Current Mode and Defaults
 
 - `ANON_MODE` supports:
-
    - `development` (default)
    - `standalone`
 
@@ -123,6 +130,9 @@ Quick check:
 
 ```bash
 echo "${ANON_MODE:-development}"
+
+# Ran on 2026-03-07 02:02:44-05:00 for 5.983s exited with 0
+de*******nt
 ```
 
 ---
@@ -145,7 +155,7 @@ echo "${ANON_MODE:-development}"
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/cpsc4205-group3/anonymous-studio.git
+git clone ht***************************************************it
 cd anonymous-studio
 ```
 
@@ -157,20 +167,20 @@ python --version
 
 **You need Python 3.9, 3.10, 3.11, or 3.12.** Python 3.13+ is not supported with this Taipy range (`taipy>=3.1.0,<4.2`) and install/runtime will fail.
 
-If you have only Python 3.13+, install 3.12 from [python.org](https://python.org) and use it explicitly in the next step.
+If you have only Python 3.13+, install 3.12 from [python.org](ht**************rg) and use it explicitly in the next step.
 
 ### 3. Create and activate a virtual environment
 
 ```bash
-# Use python3.12 explicitly to avoid picking up 3.14 if both are installed
-python3.12 -m venv .venv
+# Use py******12 explicitly to avoid picking up 3.14 if both are installed
+py******12 -m venv .venv
 
 # Activate — run this every time you open a new terminal
 source .venv/bin/activate        # Mac / Linux
 .venv\Scripts\activate           # Windows
 ```
 
-You'll see `(.venv)` at the start of your prompt when it's active. Run `python --version` inside the venv to confirm it shows 3.12.x.
+You'll see `(.venv)` at the start of your prompt when it's active. Run `python --version` inside the venv to confirm it shows 3.**.x.
 
 ### 4. Install dependencies
 
@@ -209,7 +219,7 @@ For standalone multi-worker runs, set `SPACY_MODEL` before startup so every work
 taipy run main.py
 ```
 
-Open **http://localhost:5000** in your browser.
+Open **ht*****************00** in your browser.
 
 If your shell does not resolve `taipy`, run:
 
@@ -226,8 +236,8 @@ Taipy CLI supports hot-reload flags:
 
 This repo reads these from environment variables in `app.py`:
 
-- `ANON_GUI_USE_RELOADER=1` enables hot reload (preferred)
-- `ANON_GUI_DEBUG=1` enables debug mode (preferred)
+- `AN*******************=1` enables hot reload (preferred)
+- `AN************=1` enables debug mode (preferred)
 - Backward-compatible aliases are also supported: `TAIPY_USE_RELOADER`, `TAIPY_DEBUG`
 
 Defaults are off (`0`) for stable production behavior, so restart is required unless you enable them.
@@ -235,8 +245,8 @@ Defaults are off (`0`) for stable production behavior, so restart is required un
 Example (development only):
 
 ```bash
-export ANON_GUI_USE_RELOADER=1
-export ANON_GUI_DEBUG=1
+export AN*******************=1
+export AN************=1
 taipy run main.py
 ```
 
@@ -263,10 +273,10 @@ Mongo can be used for both:
 
 ```bash
 export ANON_STORE_BACKEND=mongo
-export MONGODB_URI=mongodb://localhost:27017/anon_studio
+export MO***************db://lo*****st:27017/anon_studio
 export ANON_RAW_INPUT_BACKEND=mongo
-export ANON_MONGO_URI=mongodb://localhost:27017/anon_studio
-export ANON_MONGO_WRITE_BATCH=5000
+export AN******************db://lo*****st:27017/anon_studio
+export AN***********************00
 ```
 
 ### Where Mongo DataNode Connects (Taipy Core)
@@ -274,16 +284,13 @@ export ANON_MONGO_WRITE_BATCH=5000
 If you are switching to Mongo mode and asking "where do I connect the DataNode?", the connection is configured in `taipy.core` (not in the UI store settings):
 
 - Connection parsing: `core_config.py::_mongo_config_from_env()`
-
    - Reads `ANON_MONGO_URI` (or `MONGODB_URI`) and fallback fields like `ANON_MONGO_DB`, `ANON_MONGO_HOST`, `ANON_MONGO_PORT`.
 
 - DataNode type selection: `core_config.py::_configure_raw_input_data_node()`
-
    - Uses `ANON_RAW_INPUT_BACKEND` (`auto | memory | mongo | pickle`).
    - In `development`, `auto -> memory`; in `standalone`, `auto -> mongo`.
 
 - Runtime writes: `core_config.py::submit_job()`
-
    - For Mongo backend, raw input is converted to Mongo documents and written in batches (`ANON_MONGO_WRITE_BATCH`) via `write()` + `append()`.
 
 Important separation:
@@ -297,7 +304,7 @@ Important separation:
 
 For a lightweight Auth0 integration (without full BFF/KrakenD), use:
 
-- `oauth2-proxy` for OIDC login/session
+- `oa********xy` for OIDC login/session
 - `nginx` for route protection and forwarding
 - optional `redis` for shared session storage
 
@@ -312,19 +319,19 @@ Quick start:
 
 ```bash
 cp deploy/auth-proxy/.env.auth-proxy.example deploy/auth-proxy/.env.auth-proxy
-make proxy-cookie-secret   # paste into OAUTH2_PROXY_COOKIE_SECRET
+make proxy-cookie-secret   # paste into OA**********************ET
 
 # Terminal A (GUI)
 taipy run main.py
 
 # Terminal B (REST on port 5001)
-TAIPY_PORT=5001 taipy run rest_main.py
+TA***********01 taipy run rest_main.py
 
 # Terminal C (auth proxy)
 make auth-proxy-up
 ```
 
-Open `http://localhost:8080`.
+Open `ht*****************80`.
 
 Stop:
 
@@ -338,16 +345,16 @@ If you prefer token validation inside `rest_main.py` (instead of a proxy-only mo
 set these env vars:
 
 ```bash
-ANON_AUTH_ENABLED=1
-AUTH0_DOMAIN=your-tenant.us.auth0.com
-AUTH0_API_AUDIENCE=https://anonymous-studio-api
+AN***************=1
+AU************************s.au*****om
+AU*****************ht************************pi
 ```
 
 Optional:
 
 ```bash
 # Defaults to RS256
-ANON_AUTH_JWT_ALGORITHMS=RS256
+AN**************************56
 # Space/comma separated scopes required for every REST request
 ANON_AUTH_REQUIRED_SCOPES=read:jobs
 # Keep specific routes open (for probes, etc.)
@@ -357,10 +364,10 @@ ANON_AUTH_EXEMPT_PATHS=/healthz
 Then run:
 
 ```bash
-TAIPY_PORT=5001 taipy run rest_main.py
+TA***********01 taipy run rest_main.py
 ```
 
-By default (`ANON_AUTH_ENABLED=0`), no token is required, which keeps local development flow unchanged.
+By default (`AN***************=0`), no token is required, which keeps local development flow unchanged.
 
 ---
 
@@ -409,10 +416,10 @@ Use these settings first:
 
 ```bash
 export ANON_MODE=standalone
-export ANON_WORKERS=8
+export AN**********=8
 export ANON_RAW_INPUT_BACKEND=mongo
-export ANON_MONGO_URI=mongodb://localhost:27017/anon_studio
-export ANON_MONGO_WRITE_BATCH=5000   # env var default; overridable per-job in UI
+export AN******************db://lo*****st:27017/anon_studio
+export AN***********************00   # env var default; overridable per-job in UI
 ```
 
 Then in the **Jobs page → Advanced Options**:
@@ -424,9 +431,9 @@ Then in the **Jobs page → Advanced Options**:
 Optional Dask compute backend for very large jobs:
 
 ```bash
-pip install "dask[dataframe]>=2024.8.0"
+pip install "dask[da*****me]>=2024.8.0"
 export ANON_JOB_COMPUTE_BACKEND=auto   # auto | pandas | dask
-export ANON_DASK_MIN_ROWS=250000       # auto-switch threshold
+export AN*********************00       # auto-switch threshold
 ```
 
 `auto` keeps pandas for small jobs and uses Dask partitions only when row count exceeds `ANON_DASK_MIN_ROWS`.
@@ -445,17 +452,17 @@ make stress
 
 Latest run (March 5, 2026):
 
-- Route stress: `210` requests, `0` failures, `P95 6.04ms`, `P99 99.70ms`
+- Route stress: `210` requests, `0` failures, `P95 6.**ms`, `P99 99***ms`
 - Task stress: `300,000` DataFrame rows processed successfully
 - Mongo-shaped payload stress: `250,000` rows processed successfully
 - Full test suite: `82 passed`
 
 ### Taipy troubleshooting references (official docs)
 
-- `invoke_long_callback` (periodic status updates): https://docs.taipy.io/en/latest/refmans/reference/pkg_taipy/pkg_gui/invoke_long_callback/
-- GUI callbacks guide: https://docs.taipy.io/en/latest/userman/gui/callbacks/
-- Mongo collection DataNode config: https://docs.taipy.io/en/latest/refmans/reference/pkg_taipy/pkg_core/Config/#taipy.Config.configure_mongo_collection_data_node
-- Core DataNode API (`write`, `append`, `read`): https://docs.taipy.io/en/latest/refmans/reference/pkg_taipy/pkg_core/pkg_data_node/DataNode/
+- `invoke_long_callback` (periodic status updates): ht************************************************************************************ck/
+- GUI callbacks guide: ht*************************************************ks/
+- Mongo collection DataNode config: ht**************************************************************************************************************************de
+- Core DataNode API (`write`, `append`, `read`): ht***************************************************************************************de/
 
 ---
 
@@ -488,9 +495,9 @@ anonymous_studio/
 | `replace` | `<EMAIL_ADDRESS>` |
 | `redact`  | _(text deleted)_ |
 | `mask`    | `********************` |
-| `hash`    | `a665a45920...` (SHA-256) |
+| `hash`    | `a6******20...` (SH***56) |
 
-The `hash` operator uses **SHA-256 with salt `"anonymous-studio"`**. The same PII value always produces the same hash within this deployment, enabling cross-record correlation without exposing the original text.
+The `hash` operator uses **SH***56 with salt `"anonymous-studio"`**. The same PII value always produces the same hash within this deployment, enabling cross-record correlation without exposing the original text.
 
 ---
 
@@ -508,8 +515,7 @@ Two backends for operational data (pipeline cards, audit log, appointments, PII 
 Click the **⚙** gear in the top banner → Store Settings. Select **mongo**, enter a URI, click **Apply** — no restart needed.
 
 ```sh
-mongodb://localhost:27017/anon_studio       # local
-mongodb+srv://user:pass@cluster/anon_studio # Atlas
+mo***db://lo*****st:27***************************************************ss@cluster/anon_studio # Atlas
 ```
 
 The Store Settings dialog also includes a **Job Data Nodes** explorer so you can inspect Taipy DataNode contents (raw input, anonymized output, stats) without navigating to the Audit page.
@@ -518,33 +524,33 @@ The Store Settings dialog also includes a **Job Data Nodes** explorer so you can
 
 ### MongoDB connection fast-fail
 
-`MongoStore` sets `serverSelectionTimeoutMS=3000`. If the server is unreachable the dialog shows an error within ~3 seconds and reverts to in-memory (default was 30 s, making Apply appear frozen).
+`MongoStore` sets `se*************************00`. If the server is unreachable the dialog shows an error within ~3 seconds and reverts to in-memory (default was 30 s, making Apply appear frozen).
 
 ### pymongo
 
-`pymongo[srv]>=4.7` is in `requirements.txt`. If missing, Store Settings shows:
+`py***go[srv]>=4.7` is in `requirements.txt`. If missing, Store Settings shows:
 
 ```sh
-⚠ pymongo is not installed. Run: pip install 'pymongo[srv]>=4.7'
+⚠ pymongo is not installed. Run: pip install 'py***go[srv]>=4.7'
 ```
 
 ---
 
 ## File Integrity Hash
 
-After uploading a CSV or Excel file the Jobs page shows the **SHA-256 of the original file bytes** beneath the filename:
+After uploading a CSV or Excel file the Jobs page shows the **SH***56 of the original file bytes** beneath the filename:
 
 ```sh
 filename.csv  ✓
-SHA-256  a3f8c2d1e4b7f9...
+SH***56  a3**********f9...
 ```
 
 Verify locally before and after transfer to confirm the file was not altered:
 
 ```bash
-sha256sum filename.csv          # Linux / WSL
+sh*****um filename.csv          # Linux / WSL
 shasum -a 256 filename.csv      # macOS
-CertUtil -hashfile filename.csv SHA256   # Windows
+CertUtil -hashfile filename.csv SH**56   # Windows
 ```
 
 ---
@@ -553,28 +559,22 @@ CertUtil -hashfile filename.csv SHA256   # Windows
 
 See **[docs/security.md](docs/security.md)** for the full threat model, applied controls, and production hardening checklist.
 
-```bash
-
-```
-
-## Performance
+**TL;DR — controls in place:**
 
 | Control | Status |
 |---------|--------|
-| Path traversal on CSV input | `ANON_UPLOAD_DIR` whitelist |
-| File upload size cap | 500 MB (`ANON_MAX_UPLOAD_MB`) |
-| MIME-type validation | Magic-byte check on xlsx/xls |
-| MongoDB query injection | Status / severity whitelists |
-| Exception details in browser | Sanitized; full trace server-side only |
-| Temp file permissions | `mode=0o700` |
-| Audit log tamper-resistance | MongoDB capped collection (append-only) |
-| Authentication | None — course demo, see security.md |
+| Path traversal on CSV input | ✅ `ANON_UPLOAD_DIR` whitelist |
+| File upload size cap | ✅ 500 MB (`ANON_MAX_UPLOAD_MB`) |
+| MIME-type validation | ✅ Magic-byte check on xlsx/xls |
+| MongoDB query injection | ✅ Status / severity whitelists |
+| Exception details in browser | ✅ Sanitized; full trace server-side only |
+| Temp file permissions | ✅ `mo******00` |
+| Audit log tamper-resistance | ✅ MongoDB capped collection (append-only) |
+| Authentication | ❌ None — course demo, see security.md |
 
 ---
 
-```bash
-
-```
+## Performance
 
 See **[docs/performance.md](docs/performance.md)** for:
 

@@ -382,7 +382,7 @@ def get_user_permissions() -> set[str]:
     # From permissions claim (Auth0 RBAC)
     perms_claim = payload.get("permissions", [])
     if isinstance(perms_claim, list):
-        permissions.update(str(p) for p in perms_claim if p)
+        permissions.update(p for p in perms_claim if isinstance(p, str) and p)
 
     return permissions
 
@@ -426,27 +426,19 @@ def require_permission(*permissions: str, require_all: bool = False) -> Callable
         @wraps(fn)
         def wrapper(*args, **kwargs):
             if require_all:
-                if not has_all_permissions(*permissions):
-                    _log.info(
-                        "Access denied: user missing required permissions %s",
-                        permissions,
-                    )
-                    raise AuthError(
-                        status_code=403,
-                        code="insufficient_permissions",
-                        description="Insufficient permissions",
-                    )
+                check_result = has_all_permissions(*permissions)
+                log_msg = "Access denied: user missing required permissions %s"
             else:
-                if not has_any_permission(*permissions):
-                    _log.info(
-                        "Access denied: user missing any of permissions %s",
-                        permissions,
-                    )
-                    raise AuthError(
-                        status_code=403,
-                        code="insufficient_permissions",
-                        description="Insufficient permissions",
-                    )
+                check_result = has_any_permission(*permissions)
+                log_msg = "Access denied: user missing any of permissions %s"
+
+            if not check_result:
+                _log.info(log_msg, permissions)
+                raise AuthError(
+                    status_code=403,
+                    code="insufficient_permissions",
+                    description="Insufficient permissions",
+                )
             return fn(*args, **kwargs)
         return wrapper
     return decorator

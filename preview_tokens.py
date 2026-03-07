@@ -1,11 +1,11 @@
 import marimo
 
-__generated_with = "0.1.0"
+__generated_with = "0.20.4"
 app = marimo.App(width="full")
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.md("""
     # Anonymous Studio — SigNoz Token Preview
     All design tokens from `@signozhq/design-tokens v2.1.2` as applied in `app.css`.
@@ -14,7 +14,7 @@ def __(mo):
 
 
 @app.cell
-def __(mo):
+def _(mo):
     def swatch(label, hex_val, text="#fff"):
         return mo.Html(f"""
         <div style="display:inline-block;margin:4px;text-align:center;min-width:120px">
@@ -30,11 +30,11 @@ def __(mo):
                            border-bottom:1px solid #242834;padding-bottom:8px;
                            font-family:Inter,sans-serif">{title}</div>""")
 
-    return swatch, section
+    return section, swatch
 
 
 @app.cell
-def __(mo, swatch, section):
+def _(mo, section, swatch):
     bg = mo.vstack([
         section("Backgrounds — Ink Scale"),
         mo.hstack([
@@ -45,11 +45,11 @@ def __(mo, swatch, section):
             swatch("ink-100",               "#2a2e37"),
         ], justify="start"),
     ])
-    return bg,
+    return (bg,)
 
 
 @app.cell
-def __(mo, swatch, section):
+def _(mo, section, swatch):
     borders = mo.vstack([
         section("Borders — Slate Scale"),
         mo.hstack([
@@ -59,11 +59,11 @@ def __(mo, swatch, section):
             swatch("slate-50 (gray/muted)",      "#62687c"),
         ], justify="start"),
     ])
-    return borders,
+    return (borders,)
 
 
 @app.cell
-def __(mo, swatch, section):
+def _(mo, section, swatch):
     accent = mo.vstack([
         section("Primary Accent — Robin Blue"),
         mo.hstack([
@@ -73,11 +73,11 @@ def __(mo, swatch, section):
             swatch("robin-600",                "#3f5ecc"),
         ], justify="start"),
     ])
-    return accent,
+    return (accent,)
 
 
 @app.cell
-def __(mo, swatch, section):
+def _(mo, section, swatch):
     semantic = mo.vstack([
         section("Semantic Colors"),
         mo.hstack([
@@ -88,11 +88,11 @@ def __(mo, swatch, section):
             swatch("special / robin-400",  "#7190f9"),
         ], justify="start"),
     ])
-    return semantic,
+    return (semantic,)
 
 
 @app.cell
-def __(mo, swatch, section):
+def _(mo, section, swatch):
     text = mo.vstack([
         section("Text Hierarchy — Vanilla / Slate"),
         mo.hstack([
@@ -102,11 +102,11 @@ def __(mo, swatch, section):
             swatch("text-faint / slate-100",       "#3c4152"),
         ], justify="start"),
     ])
-    return text,
+    return (text,)
 
 
 @app.cell
-def __(mo, swatch, section):
+def _(mo, section, swatch):
     anon = mo.vstack([
         section("Anonymized Text"),
         mo.hstack([
@@ -115,11 +115,11 @@ def __(mo, swatch, section):
             swatch("anon-tag / forest-500", "#25e192"),
         ], justify="start"),
     ])
-    return anon,
+    return (anon,)
 
 
 @app.cell
-def __(mo, bg, borders, accent, semantic, text, anon):
+def _(accent, anon, bg, borders, mo, semantic, text):
     page = mo.Html("""<div style="background:#0b0c0e;min-height:100vh;padding:32px;
                        font-family:Inter,sans-serif">""")
     mo.vstack([page, bg, borders, accent, semantic, text, anon])
@@ -127,9 +127,10 @@ def __(mo, bg, borders, accent, semantic, text, anon):
 
 
 @app.cell
-def __():
+def _():
     import marimo as mo
-    return mo,
+
+    return (mo,)
 
 
 if __name__ == "__main__":
