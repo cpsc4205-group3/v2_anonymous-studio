@@ -33,7 +33,7 @@ try:
 except Exception:  # optional: fallback if plotly is unavailable in env
     go = None
 import taipy as tp
-from taipy.gui import Gui, notify, invoke_callback, invoke_long_callback, download, get_state_id, navigate, Icon
+from taipy.gui import Gui, notify, invoke_callback, download, get_state_id, navigate, Icon
 import taipy.core as tc
 from taipy.core import Status
 from taipy.event import EventProcessor
@@ -180,9 +180,9 @@ def _store_status_ui(status_text: str) -> tuple[str, str]:
     """Return compact store label plus full hover tooltip text."""
     raw = str(status_text or "").strip()
     lower = raw.lower()
-    if lower.startswith("✓ mongodb"):
+    if lower.startswith("mongodb"):
         label = "𖠰 Mongo"
-    elif lower.startswith("✓ duckdb"):
+    elif lower.startswith("duckdb"):
         label = "𐦖 DuckDB"
     else:
         label = "⸙ In Memory"
@@ -313,16 +313,16 @@ store_status_label, store_status_hover = _store_status_ui(store_status)
 raw_input_status_label, raw_input_status_hover = _raw_input_backend_ui()
 # Bool companions for <|status|> LED widgets
 spacy_ok      = "blank" not in spacy_status.lower()
-store_ok      = store_status.startswith("✓")
+store_ok      = not store_status.startswith("Error") and not store_status.startswith("Missing") and not store_status.startswith("⚠") and not store_status.startswith("Fallback")
 raw_input_ok  = True
 
 try:
     import dask as _dask_mod
     dask_version = _dask_mod.__version__
-    dask_status  = f"✓ Dask {dask_version}"
+    dask_status  = f"Dask {dask_version}"
 except ImportError:
     dask_version = ""
-    dask_status  = "✗ Dask not installed"
+    dask_status  = "Dask not installed"
 
 # ── Store backend settings ────────────────────────────────────────────────────
 _initial_store_backend = get_store_backend_mode()
@@ -537,7 +537,8 @@ def _register_live_state(state) -> None:
 def _on_live_dashboard_tick(state) -> None:
     """UI-thread callback invoked periodically for each connected client."""
     try:
-        _refresh_dashboard(state)
+        if not _sync_active_job_progress(state, load_results_on_done=True):
+            _refresh_dashboard(state)
     except Exception:
         pass
 
@@ -1348,9 +1349,9 @@ def _refresh_telemetry(state) -> None:
     prom_ok = snap.get("prometheus_available", False)
     port    = snap.get("metrics_port", 0)
     if prom_ok and port > 0:
-        state.telemetry_prometheus_status = f"✓ Prometheus active — /metrics on :{port}"
+        state.telemetry_prometheus_status = f"Prometheus active — /metrics on :{port}"
     elif prom_ok:
-        state.telemetry_prometheus_status = "✓ prometheus_client installed · set ANON_METRICS_PORT to expose /metrics"
+        state.telemetry_prometheus_status = "prometheus_client installed · set ANON_METRICS_PORT to expose /metrics"
     else:
         state.telemetry_prometheus_status = "▲ prometheus_client not installed — install with: pip install prometheus_client"
 
@@ -1784,7 +1785,8 @@ def _refresh_job_health(state):
         state.job_run_health = "Running"
 
     submission = _resolve_submission_state(jid)
-    state.job_active_submission_id = str(submission.get("id", "") or "")
+    raw_sub_id = str(submission.get("id", "") or "")
+    state.job_active_submission_id = raw_sub_id[:16] + "…" if len(raw_sub_id) > 16 else raw_sub_id
     sub_status = str(submission.get("status", "—") or "—")
     if sub_status == "—" and state.job_is_running:
         sub_status = "Submitting"
@@ -2350,7 +2352,6 @@ def _refresh_dashboard(state):
                     color=state.dash_map_chart["Mentions"],
                     colorscale=geo_scale,
                     opacity=0.94,
-                    line=dict(color="#FFF8F2", width=1.8),
                     colorbar=dict(
                         title=dict(text="Mentions", font=dict(color=map_text)),
                         x=1.02,
@@ -2477,7 +2478,7 @@ def _refresh_dashboard(state):
     if state.dash_jobs_failed > 0:
         n = state.dash_jobs_failed
         alert_lines.append(
-            f"🔴 **{n} failed job{'s' if n != 1 else ''}** — inspect in Batch Jobs"
+            f"**{n} failed job{'s' if n != 1 else ''}** — inspect in Batch Jobs"
         )
     overdue = [
         a for a in _dash_appointments
@@ -2486,7 +2487,7 @@ def _refresh_dashboard(state):
     if overdue:
         n = len(overdue)
         alert_lines.append(
-            f"🔴 **{n} overdue review{'s' if n != 1 else ''}** — past scheduled time"
+            f"**{n} overdue review{'s' if n != 1 else ''}** — past scheduled time"
         )
     if state.dash_backlog_cards > 15:
         alert_lines.append(
@@ -2500,8 +2501,8 @@ def _refresh_dashboard(state):
     state.dash_alerts_md = "  \n".join(alert_lines) if alert_lines else ""
 
     # ── Service health summary ────────────────────────────────────────────────
-    nlp_icon = "🟢" if getattr(state, "spacy_ok", True) else "🔴"
-    store_icon = "🟢" if getattr(state, "store_ok", True) else "🔴"
+    nlp_icon = "Active" if getattr(state, "spacy_ok", True) else "Issue"
+    store_icon = "Active" if getattr(state, "store_ok", True) else "Issue"
     orch_icon = "🟡" if state.dash_jobs_failed > 0 else "🟢"
     state.dash_svc_health_md = (
         f"{nlp_icon} **NLP**  ·  {store_icon} **Store**  ·  {orch_icon} **Orchestrator**"
@@ -2845,7 +2846,6 @@ def _refresh_ui_demo(state) -> None:
                         outlinecolor="#E7D4C8",
                     ),
                     opacity=0.94,
-                    line=dict(color="#FFF8F2", width=1.8),
                 ),
                 hovertemplate="%{text}<extra></extra>",
             )
@@ -4000,10 +4000,10 @@ def on_store_apply(state):
     duckdb_path = (state.store_duckdb_path or "").strip()
 
     if backend == "mongo" and not uri:
-        state.store_settings_msg = "⚠ MongoDB URI is required (e.g. mongodb://localhost:27017/anon_studio)."
+        state.store_settings_msg = "MongoDB URI is required (e.g. mongodb://localhost:27017/anon_studio)."
         return
     if backend == "duckdb" and not duckdb_path:
-        state.store_settings_msg = "⚠ DuckDB path is required (e.g. /tmp/anon_studio.duckdb)."
+        state.store_settings_msg = "DuckDB path is required (e.g. /tmp/anon_studio.duckdb)."
         return
 
     os.environ["ANON_STORE_BACKEND"] = backend
@@ -4051,16 +4051,16 @@ def on_store_apply(state):
         state.store_backend_sel = get_store_backend_mode()
         if backend == "mongo":
             state.store_settings_msg = (
-                f"⚠ pymongo is not installed. Kept previous backend. "
+                f"pymongo is not installed. Kept previous backend. "
                 f"Run: pip install 'pymongo[srv]>=4.7' ({exc})"
             )
         elif backend == "duckdb":
             state.store_settings_msg = (
-                f"⚠ duckdb is not installed. Kept previous backend. "
+                f"duckdb is not installed. Kept previous backend. "
                 f"Run: pip install 'duckdb>=1.0' ({exc})"
             )
         else:
-            state.store_settings_msg = f"⚠ Backend dependency missing: {exc}"
+            state.store_settings_msg = f"Backend dependency missing: {exc}"
     except Exception as exc:
         # Connection/setup failure: keep the previous backend instead of forcing memory.
         os.environ["ANON_STORE_BACKEND"] = prev_backend
@@ -4079,7 +4079,7 @@ def on_store_apply(state):
         state.store_status = status_text
         state.store_status_label, state.store_status_hover = _store_status_ui(status_text)
         state.store_backend_sel = get_store_backend_mode()
-        state.store_settings_msg = f"⚠ Connection failed. Kept previous backend: {exc}"
+        state.store_settings_msg = f"Connection failed. Kept previous backend: {exc}"
 
 
 def on_qt_clear(state):
@@ -4199,9 +4199,8 @@ def on_file_upload(state, action, payload):
 
 def _bg_submit_job(raw_df, config):
     """
-    Runs in a background thread (via invoke_long_callback).
     Creates the Scenario, writes DataNodes, submits to Orchestrator.
-    Returns (taipy_scenario_id, job_id, submission_id) so _bg_job_done can update the card.
+    Returns (taipy_scenario_id, job_id, submission_id) for UI/state updates.
     """
     # Apply runtime MongoDB write batch size override before DataNode write.
     batch = config.get("mongo_write_batch")
@@ -4213,6 +4212,22 @@ def _bg_submit_job(raw_df, config):
     if sub_id:
         _SUBMISSION_IDS[config["job_id"]] = sub_id
     return sc.id, config["job_id"], sub_id
+
+
+def _apply_submission_result(state, result) -> None:
+    """Update UI/runtime registries after a Taipy submission succeeds."""
+    if result and isinstance(result, tuple) and len(result) >= 2:
+        taipy_sc_id, job_id = result[0], result[1]
+        sub_id = str(result[2]) if len(result) > 2 and result[2] else ""
+        if sub_id:
+            _SUBMISSION_IDS[job_id] = sub_id
+        if state.active_job_id == job_id:
+            state.job_active_submission_id = sub_id
+            state.job_submission_status = "Submitted"
+        for c in store.list_cards():
+            if getattr(c, "job_id", None) == job_id:
+                store.update_card(c.id, scenario_id=taipy_sc_id)
+    _sync_active_job_progress(state, load_results_on_done=True)
 
 
 def _sync_active_job_progress(state, load_results_on_done: bool = True) -> bool:
@@ -4324,18 +4339,7 @@ def _bg_job_done(state, status, result):
         notify(state, "error", "Job submission failed in background task.")
         return
 
-    if result and isinstance(result, tuple) and len(result) >= 2:
-        taipy_sc_id, job_id = result[0], result[1]
-        sub_id = str(result[2]) if len(result) > 2 and result[2] else ""
-        if sub_id:
-            _SUBMISSION_IDS[job_id] = sub_id
-            if state.active_job_id == job_id:
-                state.job_active_submission_id = sub_id
-                state.job_submission_status = "Submitted"
-        for c in store.list_cards():
-            if getattr(c, "job_id", None) == job_id:
-                store.update_card(c.id, scenario_id=taipy_sc_id)
-    _sync_active_job_progress(state, load_results_on_done=True)
+    _apply_submission_result(state, result)
     notify(state, "success", "Job submitted to Orchestrator.")
 
 
@@ -4362,7 +4366,7 @@ def on_submission_status_change(state, submittable, details):
         _refresh_job_table(state)
 
 def on_submit_job(state):
-    """Validate inputs, parse the file, then fire invoke_long_callback."""
+    """Validate inputs, parse the file, and submit directly to the Orchestrator."""
     # Resolve bytes from per-session cache (preferred) or Taipy's bound variable (fallback)
     sid = get_state_id(state)
     raw_bytes, _slot = resolve_upload_bytes(state, _FILE_CACHE, sid)
@@ -4480,19 +4484,39 @@ def on_submit_job(state):
     except Exception:
         pass
 
-    invoke_long_callback(
-        state,
-        user_function=_bg_submit_job,
-        user_function_args=[raw_input_payload, config],
-        user_status_function=_bg_job_done,
-        period=_JOB_UI_POLL_MS,
-    )
+    try:
+        result = _bg_submit_job(raw_input_payload, config)
+    except Exception as exc:
+        _log.exception("job_submit_error")
+        state.job_is_running = False
+        state.job_progress_status = "error"
+        state.job_submission_status = "Failed"
+        state.job_progress_msg = f"Job submission failed: {exc}"
+        _persist_progress(
+            job_id,
+            {
+                "pct": 0.0,
+                "processed": 0,
+                "total": row_count,
+                "message": state.job_progress_msg,
+                "status": "error",
+                "updated_at": time.time(),
+            },
+        )
+        _FILE_CACHE.pop(sid, None)
+        _refresh_job_health(state)
+        _refresh_job_table(state)
+        _refresh_dashboard(state)
+        notify(state, "error", "Job submission failed.")
+        return
+
+    _apply_submission_result(state, result)
 
     # Release the upload slot — file bytes no longer needed in memory
     _FILE_CACHE.pop(sid, None)
 
     _refresh_job_table(state)
-    notify(state, "info", f"Job {job_id[:8]} submitted — "
+    notify(state, "success", f"Job {job_id[:8]} submitted — "
            f"{row_count:,} rows queued.")
 
 
@@ -5522,6 +5546,7 @@ def run_app():
 
     use_reloader = _env_flag("ANON_GUI_USE_RELOADER", "TAIPY_USE_RELOADER", default=False)
     debug_mode = _env_flag("ANON_GUI_DEBUG", "TAIPY_DEBUG", default=False)
+    allow_unsafe_werkzeug = _env_flag("ANON_GUI_ALLOW_UNSAFE_WERKZEUG", default=True)
     _start_live_dashboard_thread(gui)
     try:
         APP_CTX.event_processor = EventProcessor(gui)
@@ -5552,6 +5577,7 @@ def run_app():
             data_url_max_size=50 * 1024 * 1024,
             use_reloader=use_reloader,
             debug=debug_mode,
+            allow_unsafe_werkzeug=allow_unsafe_werkzeug,
             # Increase the max_decode_packets to handle large state with many dataframes
             async_mode="threading",
             engineio_logger=False,

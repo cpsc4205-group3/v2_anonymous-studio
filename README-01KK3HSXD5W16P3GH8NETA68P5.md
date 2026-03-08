@@ -522,7 +522,7 @@ Two backends for operational data (pipeline cards, audit log, appointments, PII 
 
 ### Switching at runtime
 
-Click the **⚙** gear in the top banner → Store Settings. Select **mongo**, enter a URI, click **Apply** — no restart needed.
+Click the **gear** in the top banner → Store Settings. Select **mongo**, enter a URI, click **Apply** — no restart needed.
 
 ```sh
 mo***db://lo*****st:27***************************************************ss@cluster/anon_studio # Atlas
@@ -541,7 +541,7 @@ The Store Settings dialog also includes a **Job Data Nodes** explorer so you can
 `py***go[srv]>=4.7` is in `requirements.txt`. If missing, Store Settings shows:
 
 ```sh
-⚠ pymongo is not installed. Run: pip install 'py***go[srv]>=4.7'
+pymongo is not installed. Run: pip install 'pymongo[srv]>=4.7'
 ```
 
 ---
@@ -551,7 +551,7 @@ The Store Settings dialog also includes a **Job Data Nodes** explorer so you can
 After uploading a CSV or Excel file the Jobs page shows the **SH***56 of the original file bytes** beneath the filename:
 
 ```sh
-filename.csv  ✓
+filename.csv
 SH***56  a3**********f9...
 ```
 

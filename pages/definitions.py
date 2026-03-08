@@ -3,19 +3,16 @@
 from taipy.gui import notify
 
 
-def _dispatch_app_action(state, callback_name: str, id=None):
-    """Resolve and call an on_action callback from app.py with signature fallback."""
+def _dispatch_app_action(state, callback_name: str, *args, **kwargs):
+    """Resolve and call an on_action callback from app.py, forwarding all arguments."""
     try:
         from app import __dict__ as app_symbols  # late import avoids circular import at startup
         callback = app_symbols.get(callback_name)
         if callback is None:
             raise AttributeError(f"Missing callback: {callback_name}")
-        try:
-            return callback(state, id)
-        except TypeError:
-            return callback(state)
-    except Exception:
-        notify(state, "error", f"Action '{callback_name}' is unavailable.")
+        return callback(state, *args, **kwargs)
+    except Exception as exc:
+        notify(state, "error", f"Action '{callback_name}' failed: {exc}")
         return None
 
 
@@ -34,164 +31,164 @@ def _dispatch_app_change(state, callback_name: str, var_name, var_value):
 
 # ─── on_action wrappers ───────────────────────────────────────────────────────
 
-def on_appt_cancel(state, id=None):
-    return _dispatch_app_action(state, "on_appt_cancel", id)
+def on_appt_cancel(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_appt_cancel", *args, **kwargs)
 
-def on_appt_delete(state, id=None):
-    return _dispatch_app_action(state, "on_appt_delete", id)
+def on_appt_delete(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_appt_delete", *args, **kwargs)
 
-def on_appt_edit(state, id=None):
-    return _dispatch_app_action(state, "on_appt_edit", id)
+def on_appt_edit(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_appt_edit", *args, **kwargs)
 
-def on_appt_new(state, id=None):
-    return _dispatch_app_action(state, "on_appt_new", id)
+def on_appt_new(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_appt_new", *args, **kwargs)
 
-def on_appt_save(state, id=None):
-    return _dispatch_app_action(state, "on_appt_save", id)
+def on_appt_save(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_appt_save", *args, **kwargs)
 
-def on_appt_select(state, id=None):
-    return _dispatch_app_action(state, "on_appt_select", id)
+def on_appt_select(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_appt_select", *args, **kwargs)
 
-def on_attest_cancel(state, id=None):
-    return _dispatch_app_action(state, "on_attest_cancel", id)
+def on_attest_cancel(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_attest_cancel", *args, **kwargs)
 
-def on_attest_confirm(state, id=None):
-    return _dispatch_app_action(state, "on_attest_confirm", id)
+def on_attest_confirm(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_attest_confirm", *args, **kwargs)
 
-def on_attest_open(state, id=None):
-    return _dispatch_app_action(state, "on_attest_open", id)
+def on_attest_open(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_attest_open", *args, **kwargs)
 
-def on_audit_clear(state, id=None):
-    return _dispatch_app_action(state, "on_audit_clear", id)
+def on_audit_clear(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_audit_clear", *args, **kwargs)
 
-def on_audit_filter(state, id=None):
-    return _dispatch_app_action(state, "on_audit_filter", id)
+def on_audit_filter(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_audit_filter", *args, **kwargs)
 
-def on_card_back(state, id=None):
-    return _dispatch_app_action(state, "on_card_back", id)
+def on_card_back(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_back", *args, **kwargs)
 
-def on_card_cancel(state, id=None):
-    return _dispatch_app_action(state, "on_card_cancel", id)
+def on_card_cancel(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_cancel", *args, **kwargs)
 
-def on_card_delete(state, id=None):
-    return _dispatch_app_action(state, "on_card_delete", id)
+def on_card_delete(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_delete", *args, **kwargs)
 
-def on_card_edit(state, id=None):
-    return _dispatch_app_action(state, "on_card_edit", id)
+def on_card_edit(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_edit", *args, **kwargs)
 
-def on_card_forward(state, id=None):
-    return _dispatch_app_action(state, "on_card_forward", id)
+def on_card_forward(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_forward", *args, **kwargs)
 
-def on_card_history(state, id=None):
-    return _dispatch_app_action(state, "on_card_history", id)
+def on_card_history(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_history", *args, **kwargs)
 
-def on_card_history_close(state, id=None):
-    return _dispatch_app_action(state, "on_card_history_close", id)
+def on_card_history_close(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_history_close", *args, **kwargs)
 
-def on_card_new(state, id=None):
-    return _dispatch_app_action(state, "on_card_new", id)
+def on_card_new(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_new", *args, **kwargs)
 
-def on_card_pick(state, id=None):
-    return _dispatch_app_action(state, "on_card_pick", id)
+def on_card_pick(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_pick", *args, **kwargs)
 
-def on_card_save(state, id=None):
-    return _dispatch_app_action(state, "on_card_save", id)
+def on_card_save(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_card_save", *args, **kwargs)
 
-def on_dash_go_analyze(state, id=None):
-    return _dispatch_app_action(state, "on_dash_go_analyze", id)
+def on_dash_go_analyze(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_dash_go_analyze", *args, **kwargs)
 
-def on_dash_seed_demo(state, id=None):
-    return _dispatch_app_action(state, "on_dash_seed_demo", id)
+def on_dash_seed_demo(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_dash_seed_demo", *args, **kwargs)
 
-def on_download(state, id=None):
-    return _dispatch_app_action(state, "on_download", id)
+def on_download(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_download", *args, **kwargs)
 
-def on_export_audit_csv(state, id=None):
-    return _dispatch_app_action(state, "on_export_audit_csv", id)
+def on_export_audit_csv(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_export_audit_csv", *args, **kwargs)
 
-def on_export_audit_json(state, id=None):
-    return _dispatch_app_action(state, "on_export_audit_json", id)
+def on_export_audit_json(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_export_audit_json", *args, **kwargs)
 
-def on_export_telemetry_csv(state, id=None):
-    return _dispatch_app_action(state, "on_export_telemetry_csv", id)
+def on_export_telemetry_csv(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_export_telemetry_csv", *args, **kwargs)
 
-def on_file_upload(state, id=None):
-    return _dispatch_app_action(state, "on_file_upload", id)
+def on_file_upload(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_file_upload", *args, **kwargs)
 
-def on_job_adv_close(state, id=None):
-    return _dispatch_app_action(state, "on_job_adv_close", id)
+def on_job_adv_close(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_job_adv_close", *args, **kwargs)
 
-def on_job_adv_open(state, id=None):
-    return _dispatch_app_action(state, "on_job_adv_open", id)
+def on_job_adv_open(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_job_adv_open", *args, **kwargs)
 
-def on_job_cancel(state, id=None):
-    return _dispatch_app_action(state, "on_job_cancel", id)
+def on_job_cancel(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_job_cancel", *args, **kwargs)
 
-def on_job_remove(state, id=None):
-    return _dispatch_app_action(state, "on_job_remove", id)
+def on_job_remove(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_job_remove", *args, **kwargs)
 
-def on_menu_action(state, id=None):
-    return _dispatch_app_action(state, "on_menu_action", id)
+def on_menu_action(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_menu_action", *args, **kwargs)
 
-def on_poll_progress(state, id=None):
-    return _dispatch_app_action(state, "on_poll_progress", id)
+def on_poll_progress(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_poll_progress", *args, **kwargs)
 
-def on_promote_primary(state, id=None):
-    return _dispatch_app_action(state, "on_promote_primary", id)
+def on_promote_primary(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_promote_primary", *args, **kwargs)
 
-def on_qt_analyze(state, id=None):
-    return _dispatch_app_action(state, "on_qt_analyze", id)
+def on_qt_analyze(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_analyze", *args, **kwargs)
 
-def on_qt_anonymize(state, id=None):
-    return _dispatch_app_action(state, "on_qt_anonymize", id)
+def on_qt_anonymize(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_anonymize", *args, **kwargs)
 
-def on_qt_clear(state, id=None):
-    return _dispatch_app_action(state, "on_qt_clear", id)
+def on_qt_clear(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_clear", *args, **kwargs)
 
-def on_qt_download_anonymized(state, id=None):
-    return _dispatch_app_action(state, "on_qt_download_anonymized", id)
+def on_qt_download_anonymized(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_download_anonymized", *args, **kwargs)
 
-def on_qt_download_entities(state, id=None):
-    return _dispatch_app_action(state, "on_qt_download_entities", id)
+def on_qt_download_entities(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_download_entities", *args, **kwargs)
 
-def on_qt_load_sample(state, id=None):
-    return _dispatch_app_action(state, "on_qt_load_sample", id)
+def on_qt_load_sample(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_load_sample", *args, **kwargs)
 
-def on_qt_save_session(state, id=None):
-    return _dispatch_app_action(state, "on_qt_save_session", id)
+def on_qt_save_session(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_save_session", *args, **kwargs)
 
-def on_qt_settings_close(state, id=None):
-    return _dispatch_app_action(state, "on_qt_settings_close", id)
+def on_qt_settings_close(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_settings_close", *args, **kwargs)
 
-def on_qt_settings_open(state, id=None):
-    return _dispatch_app_action(state, "on_qt_settings_open", id)
+def on_qt_settings_open(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_qt_settings_open", *args, **kwargs)
 
-def on_refresh_dashboard(state, id=None):
-    return _dispatch_app_action(state, "on_refresh_dashboard", id)
+def on_refresh_dashboard(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_refresh_dashboard", *args, **kwargs)
 
-def on_refresh_telemetry(state, id=None):
-    return _dispatch_app_action(state, "on_refresh_telemetry", id)
+def on_refresh_telemetry(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_refresh_telemetry", *args, **kwargs)
 
-def on_select_job(state, id=None):
-    return _dispatch_app_action(state, "on_select_job", id)
+def on_select_job(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_select_job", *args, **kwargs)
 
-def on_store_apply(state, id=None):
-    return _dispatch_app_action(state, "on_store_apply", id)
+def on_store_apply(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_store_apply", *args, **kwargs)
 
-def on_store_settings_close(state, id=None):
-    return _dispatch_app_action(state, "on_store_settings_close", id)
+def on_store_settings_close(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_store_settings_close", *args, **kwargs)
 
-def on_store_settings_open(state, id=None):
-    return _dispatch_app_action(state, "on_store_settings_open", id)
+def on_store_settings_open(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_store_settings_open", *args, **kwargs)
 
-def on_submit_job(state, id=None):
-    return _dispatch_app_action(state, "on_submit_job", id)
+def on_submit_job(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_submit_job", *args, **kwargs)
 
-def on_ui_demo_refresh(state, id=None):
-    return _dispatch_app_action(state, "on_ui_demo_refresh", id)
+def on_ui_demo_refresh(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_ui_demo_refresh", *args, **kwargs)
 
-def on_whatif_compare(state, id=None):
-    return _dispatch_app_action(state, "on_whatif_compare", id)
+def on_whatif_compare(state, *args, **kwargs):
+    return _dispatch_app_action(state, "on_whatif_compare", *args, **kwargs)
 
 
 # ─── on_change wrappers ───────────────────────────────────────────────────────
@@ -209,40 +206,38 @@ def on_ui_demo_filters_change(state, var_name, var_value):
     return _dispatch_app_change(state, "on_ui_demo_filters_change", var_name, var_value)
 
 
-def on_store_settings_open(state, id=None):
-    return _dispatch_app_action(state, "on_store_settings_open", id)
-
-
-def on_store_settings_close(state, id=None):
-    return _dispatch_app_action(state, "on_store_settings_close", id)
-
-
-def on_store_apply(state, id=None):
-    return _dispatch_app_action(state, "on_store_apply", id)
-
 
 # ─── Dashboard ────────────────────────────────────────────────────────────────
 DASH = """
 <|part|class_name=pg pg-dashboard|
 
-<|part|class_name=page-hd|
-<|Dashboard|text|class_name=page-title|>
-<|Live pipeline status, recent activity, and upcoming compliance reviews|text|class_name=page-sub|hover_text=Live pipeline status, recent activity, and upcoming compliance reviews|>
+<|part|class_name=page-hd dash-hero|
+<|part|class_name=dash-hero-copy|
+<|Operations Command Center|text|class_name=dash-eyebrow|>
+<|Dashboard|text|class_name=page-title dash-hero-title|>
+<|Live pipeline status, recent activity, and upcoming compliance reviews|text|class_name=page-sub dash-hero-sub|hover_text=Live pipeline status, recent activity, and upcoming compliance reviews|>
 |>
-
-<|part|class_name=nlp-banner|
-<|Settings|button|on_action=on_store_settings_open|class_name=secondary plain|hover_text=Change store backend|>
-<|Store|text|class_name=banner-label ml-auto|>
+<|part|class_name=dash-hero-meta|
+<|part|class_name=dash-hero-store|
+<|Data Store|text|class_name=banner-label|>
 <|{store_status_label}|button|on_action=on_store_settings_open|class_name=store-mode-pill plain|hover_text={store_status_hover}|>
+<|Settings|button|on_action=on_store_settings_open|class_name=secondary plain|hover_text=Change store backend|>
+|>
+<|part|class_name=dash-hero-actions|
+<|Refresh|button|on_action=on_refresh_dashboard|class_name=secondary|>
+<|Generate Demo Session|button|on_action=on_dash_seed_demo|>
+|>
+|>
 |>
 
 <|part|class_name=dash-toolbar|
-<|layout|columns=1 1 1 1 8|gap=16px|
-<|Refresh|button|on_action=on_refresh_dashboard|class_name=secondary|>
-<|Generate Demo Session|button|on_action=on_dash_seed_demo|class_name=secondary|>
+<|part|class_name=dash-toolbar-copy|
+<|Portfolio Lens|text|class_name=dash-toolbar-label|>
+<|Switch between report modes and time windows without leaving the command view.|text|class_name=dash-toolbar-sub|>
+|>
+<|part|class_name=dash-toolbar-cluster|
 <|{dash_report_mode}|selector|lov={dash_report_mode_lov}|dropdown=True|label=Mode|on_change=on_dash_filters_change|class_name=fullwidth dash-filter|>
 <|{dash_time_window}|selector|lov={dash_time_window_lov}|dropdown=True|label=Window|on_change=on_dash_filters_change|class_name=fullwidth dash-filter dash-window|>
-<|part|>
 |>
 |>
 
@@ -274,26 +269,31 @@ DASH = """
 |>
 |>
 
+<|part|class_name=dash-status-band|
+<|part|class_name=dash-status-stack|
 <|part|class_name=dash-svc-bar|
 <|{dash_svc_health_md}|text|mode=md|class_name=svc-health-row|>
 |>
-
 <|part|render={dash_alerts_visible}|class_name=dash-alerts-wrap|
 <|Active Alerts|text|class_name=sh sh-top dash-alerts-title|>
 <|{dash_alerts_md}|text|mode=md|class_name=dash-alerts-body|>
 |>
-
-<|{"*Start by analyzing text, creating pipeline cards, or scheduling reviews — data will appear here.*"}|text|mode=md|render={not (dash_stage_chart_visible or dash_entity_chart_visible or dash_has_reviews)}|class_name=audit-stmt|>
-
-<|part|render={dash_has_reviews}|class_name=dash-upcoming|
-<|Upcoming Reviews|text|class_name=sh dash-section-title|>
+|>
+<|part|render={dash_has_reviews}|class_name=dash-upcoming dash-upcoming-panel|
+<|Upcoming Reviews|text|class_name=sh sh-top dash-section-title|>
 <|{dash_upcoming_md}|text|mode=md|class_name=hi-box dash-upcoming-box|>
+|>
+|>
+
+<|part|render={not (dash_stage_chart_visible or dash_entity_chart_visible or dash_has_reviews)}|class_name=dash-empty-banner|
+<|Portfolio is quiet|text|class_name=dash-empty-title|>
+<|{"*Start by analyzing text, creating pipeline cards, or scheduling reviews and this dashboard will populate automatically.*"}|text|mode=md|class_name=dash-empty-sub|>
 |>
 
 <|part|class_name=dash-lower-section|
 
 <|layout|columns=1 1|gap=24px|
-<|part|render={dash_stage_chart_visible}|class_name=settings-panel dash-panel|
+<|part|render={dash_stage_chart_visible}|class_name=settings-panel dash-panel dash-panel-info|
 <|Pipeline Health|text|class_name=sh sh-top|>
 <|layout|columns=1 1 1|gap=16px|
 <|{dash_completion_pct}|metric|title=Completion %|delta={dash_completion_pct_delta}|delta_color=normal|format=%.0f|type=linear|min=0|max=100|>
@@ -304,7 +304,7 @@ DASH = """
 <|Pipeline Stage Distribution|text|class_name=sh|>
 <|{dash_stage_chart}|chart|type=plotly|figure={dash_stage_figure}|height=300px|>
 |>
-<|part|render={not dash_stage_chart_visible}|class_name=panel widget-empty|
+<|part|render={not dash_stage_chart_visible}|class_name=panel widget-empty dash-panel dash-panel-muted|
 <|Pipeline|text|class_name=sh sh-top|>
 <|No pipeline cards yet.|text|class_name=widget-empty-title|>
 <|Create cards in the Pipeline to begin tracking compliance stages.|text|class_name=widget-empty-sub|>
@@ -321,7 +321,7 @@ DASH = """
 <|All sessions|text|class_name=inline-hint|>
 <|{dash_entity_chart}|chart|type=plotly|figure={dash_entity_chart_figure}|height=320px|>
 |>
-<|part|render={not dash_entity_chart_visible}|class_name=panel widget-empty|
+<|part|render={not dash_entity_chart_visible}|class_name=panel widget-empty dash-panel dash-panel-muted|
 <|PII Entity Analysis|text|class_name=sh sh-top|>
 <|No saved PII sessions yet.|text|class_name=widget-empty-title|>
 <|Run one demo session to populate this chart instantly.|text|class_name=widget-empty-sub|>
@@ -332,23 +332,23 @@ DASH = """
 |>
 |>
 
-<|part|render={pipeline_burndown_visible}|class_name=settings-panel dash-panel|
+<|part|render={pipeline_burndown_visible}|class_name=settings-panel dash-panel dash-panel-warning|
 <|Pipeline Burndown|text|class_name=sh sh-top|>
 <|{pipeline_burndown_md}|text|mode=md|class_name=audit-stmt|>
 <|{pipeline_burndown}|chart|type=plotly|figure={pipeline_burndown_figure}|height=300px|>
 |>
-<|part|render={not pipeline_burndown_visible}|class_name=panel widget-empty|
+<|part|render={not pipeline_burndown_visible}|class_name=panel widget-empty dash-panel dash-panel-muted|
 <|Pipeline Burndown|text|class_name=sh sh-top|>
 <|No pipeline cards yet.|text|class_name=widget-empty-title|>
 <|Create cards in the Pipeline to see remaining open work over time.|text|class_name=widget-empty-sub|>
 |>
 
-<|part|render={dash_map_visible}|class_name=settings-panel dash-panel geo-map-panel|
+<|part|render={dash_map_visible}|class_name=settings-panel dash-panel dash-panel-cyan geo-map-panel|
 <|Geo Signal Map|text|class_name=sh sh-top|>
 <|{dash_map_md}|text|mode=md|class_name=audit-stmt geo-map-summary|>
 <|{dash_map_chart}|chart|type=plotly|figure={dash_map_figure}|height=360px|>
 |>
-<|part|render={not dash_map_visible}|class_name=panel widget-empty|
+<|part|render={not dash_map_visible}|class_name=panel widget-empty dash-panel dash-panel-muted|
 <|Geo Signal Map|text|class_name=sh sh-top|>
 <|No location mentions yet.|text|class_name=widget-empty-title|>
 <|Analyze location-rich text to light up the map.|text|class_name=widget-empty-sub|>
@@ -357,7 +357,7 @@ DASH = """
 |>
 |>
 
-<|part|render={dash_perf_visible}|class_name=settings-panel dash-panel|
+<|part|render={dash_perf_visible}|class_name=settings-panel dash-panel dash-panel-neutral|
 <|Engine Performance|text|class_name=sh sh-top|>
 <|layout|columns=1 1|gap=16px|
 <|{dash_perf_avg_ms}|metric|title=Avg Latency|format=%.0f ms|delta={dash_perf_delta_ms}|delta_color=invert|type=none|>
@@ -365,13 +365,13 @@ DASH = """
 |>
 <|{perf_telemetry_table}|chart|id=dash_perf_bar|type=plotly|figure={dash_perf_figure}|height=260px|>
 |>
-<|part|render={not dash_perf_visible}|class_name=panel widget-empty|
+<|part|render={not dash_perf_visible}|class_name=panel widget-empty dash-panel dash-panel-muted|
 <|Engine Performance|text|class_name=sh sh-top|>
 <|No sessions timed yet.|text|class_name=widget-empty-title|>
 <|Run Analyze Text or submit a batch job to see engine latency metrics.|text|class_name=widget-empty-sub|>
 |>
 
-<|part|render={job_file_art!=""}|class_name=settings-panel dash-panel|
+<|part|render={job_file_art!=""}|class_name=settings-panel dash-panel dash-panel-success|
 <|Last Upload Fingerprint|text|class_name=sh sh-top|>
 <|{job_file_name}|text|class_name=inline-hint|>
 <|{job_file_art}|text|mode=pre|class_name=file-hash-art|>
@@ -395,16 +395,14 @@ JOBS = """
 <|layout|columns=1 1 1 1|gap=12px|
 <|{job_kpi_total}|metric|title=Total Jobs|format=%d|type=none|>
 <|{job_kpi_running}|metric|title=Running|format=%d|delta_color=normal|type=none|>
-<|{job_kpi_success_pct}|indicator|value={job_kpi_success_pct}|min=0|max=100|title=Success Rate|format=%.0f%%|>
+<|{job_kpi_success_pct}|metric|title=Success Rate|format=%.0f%%|type=none|>
 <|{job_kpi_entities}|metric|title=Entities Found|format=%s|type=none|>
 |>
 
 <|part|class_name=nlp-banner status-ribbon|
 <|NLP|text|class_name=banner-label|>
-<|{spacy_ok}|status|>
 <|{spacy_status_label}|button|on_action=on_job_adv_open|class_name=store-mode-pill plain|hover_text={spacy_status_hover}|>
 <|Store|text|class_name=banner-label|>
-<|{store_ok}|status|>
 <|{store_status_label}|button|on_action=on_store_settings_open|class_name=store-mode-pill plain|hover_text={store_status_hover}|>
 <|Refresh|button|on_action=on_poll_progress|class_name=secondary plain ml-auto|hover_text=Poll active job progress|>
 <|Settings|button|on_action=on_store_settings_open|class_name=secondary plain|hover_text=Change store backend|>
@@ -484,10 +482,22 @@ JOBS = """
 <|part|class_name=settings-panel|
 <|Active Run Monitor|text|class_name=sh sh-top|>
 <|layout|columns=1 1 1 1|gap=10px|
-<|{job_run_health}|metric|title=Run Health|format=%s|type=none|>
-<|{active_job_id if active_job_id else "No job"}|metric|title=Active Job|format=%s|type=none|>
-<|{job_active_submission_id if job_active_submission_id else "—"}|metric|title=Active Submission|format=%s|type=none|>
-<|{job_submission_status}|metric|title=Submission Status|format=%s|type=none|>
+<|part|class_name=panel|
+<|Run Health|text|class_name=inline-hint|>
+<|{job_run_health}|text|class_name=sh|>
+|>
+<|part|class_name=panel|
+<|Active Job|text|class_name=inline-hint|>
+<|{active_job_id if active_job_id else "No job"}|text|class_name=sh|>
+|>
+<|part|class_name=panel|
+<|Active Submission|text|class_name=inline-hint|>
+<|{job_active_submission_id if job_active_submission_id else "—"}|text|class_name=sh|>
+|>
+<|part|class_name=panel|
+<|Submission Status|text|class_name=inline-hint|>
+<|{job_submission_status}|text|class_name=sh|>
+|>
 |>
 <|part|render={job_run_health!="Idle"}|
 <|{job_stage_text}|text|class_name=audit-stmt|>
@@ -511,11 +521,11 @@ JOBS = """
 <|Download CSV|button|on_action=on_download|render={download_ready}|>
 <|part|render={download_ready}|
 <|layout|columns=1 1|gap=16px|
-<|{stats_entity_rows}|table|columns=Entity Type;Count|page_size=8|show_all=False|>
+<|{stats_entity_rows}|table|columns=Entity Type;Count|page_size=8|show_all=False|filter=True|sortable=True|>
 <|{stats_entity_rows}|chart|type=plotly|figure={stats_entity_chart_figure}|height=260px|>
 |>
 <|Preview (first 50 rows)|text|class_name=sh|>
-<|{preview_data}|table|page_size=8|show_all=False|>
+<|{preview_data}|table|page_size=8|show_all=False|filter=True|sortable=True|>
 |>
 <|part|render={not download_ready}|
 <|Run a job to generate anonymized output and quality metrics.|text|class_name=inline-hint|>
@@ -530,7 +540,7 @@ JOBS = """
 <|part|>
 |>
 <|Select a row first. Cancel works for pending/running jobs; remove works for finished jobs.|text|class_name=inline-hint|>
-<|{job_table_data}|table|columns=Job ID;Title;Progress;Status;Entities;Duration;Message|cell_class_name[Status]=status_cell_class|page_size=10|show_all=False|on_action=on_select_job|>
+<|{job_table_data}|table|columns=Job ID;Title;Progress;Status;Entities;Duration;Message|cell_class_name[Status]=status_cell_class|page_size=10|show_all=False|on_action=on_select_job|filter=True|sortable=True|>
 |>
 
 <|part|render={job_view_tab=="Data Nodes"}|class_name=panel|
@@ -547,7 +557,7 @@ JOBS = """
 
 <|part|render={job_view_tab=="Errors"}|class_name=panel|
 <|Errors & Audit|text|class_name=sh sh-top|>
-<|{job_errors_data}|table|columns=Time;Source;Details;Severity|cell_class_name[Severity]=severity_cell_class|page_size=10|show_all=False|>
+<|{job_errors_data}|table|columns=Time;Source;Details;Severity|cell_class_name[Severity]=severity_cell_class|page_size=10|show_all=False|filter=True|sortable=True|>
 <|Go to Audit Log for full event history and filtering.|text|class_name=inline-hint|>
 |>
 
@@ -566,15 +576,15 @@ JOBS = """
 <|{whatif_compare_md}|text|mode=md|class_name=inline-hint|>
 <|part|render={whatif_compare_has_data}|
 <|layout|columns=1 1|gap=16px|
-<|{whatif_compare_data}|table|columns=Scenario;Processed Rows;Entities;Entities / Row|show_all=False|page_size=6|>
+<|{whatif_compare_data}|table|columns=Scenario;Processed Rows;Entities;Entities / Row|show_all=False|page_size=6|filter=True|sortable=True|>
 <|{whatif_compare_chart}|chart|type=plotly|figure={whatif_compare_figure}|height=240px|>
 |>
 |>
 
 <|Submission Monitor|text|class_name=sh|>
-<|{submission_table}|table|columns=Submission;Entity;Status;Jobs;Created|cell_class_name[Status]=status_cell_class|show_all=False|page_size=8|>
+<|{submission_table}|table|columns=Submission;Entity;Status;Jobs;Created|cell_class_name[Status]=status_cell_class|show_all=False|page_size=8|filter=True|sortable=True|>
 <|Cycle Monitor|text|class_name=sh|>
-<|{cycle_table}|table|columns=Cycle;Frequency;Start;End;Scenarios|show_all=False|page_size=8|>
+<|{cycle_table}|table|columns=Cycle;Frequency;Start;End;Scenarios|show_all=False|page_size=8|filter=True|sortable=True|>
 |>
 
 |>
@@ -621,25 +631,25 @@ PIPELINE = """
 <|part|class_name=kh kh-gray|
 Backlog <|{kanban_backlog_len}|text|class_name=kh-cnt|>
 |>
-<|{kanban_backlog}|table|selected={backlog_sel}|columns=Select;Title;Priority;Job|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|use_checkbox=True|show_all=True|on_action=on_card_pick|>
+<|{kanban_backlog}|table|selected={backlog_sel}|columns=Select;Title;Priority;Job|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|use_checkbox=True|show_all=True|on_action=on_card_pick|filter=True|sortable=True|>
 |>
 <|part|class_name=kc kc-purple|
 <|part|class_name=kh kh-purple|
 In Progress <|{kanban_in_progress_len}|text|class_name=kh-cnt|>
 |>
-<|{kanban_in_progress}|table|selected={in_progress_sel}|columns=Select;Title;Priority;Job|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|use_checkbox=True|show_all=True|on_action=on_card_pick|>
+<|{kanban_in_progress}|table|selected={in_progress_sel}|columns=Select;Title;Priority;Job|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|use_checkbox=True|show_all=True|on_action=on_card_pick|filter=True|sortable=True|>
 |>
 <|part|class_name=kc kc-yellow|
 <|part|class_name=kh kh-yellow|
 Review <|{kanban_review_len}|text|class_name=kh-cnt|>
 |>
-<|{kanban_review}|table|selected={review_sel}|columns=Select;Title;Priority;Job|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|use_checkbox=True|show_all=True|on_action=on_card_pick|>
+<|{kanban_review}|table|selected={review_sel}|columns=Select;Title;Priority;Job|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|use_checkbox=True|show_all=True|on_action=on_card_pick|filter=True|sortable=True|>
 |>
 <|part|class_name=kc kc-green|
 <|part|class_name=kh kh-green|
 Done <|{kanban_done_len}|text|class_name=kh-cnt|>
 |>
-<|{kanban_done}|table|selected={done_sel}|columns=Select;Title;Priority;Job|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|use_checkbox=True|show_all=True|on_action=on_card_pick|>
+<|{kanban_done}|table|selected={done_sel}|columns=Select;Title;Priority;Job|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|use_checkbox=True|show_all=True|on_action=on_card_pick|filter=True|sortable=True|>
 |>
 |>
 |>
@@ -683,13 +693,13 @@ Done <|{kanban_done_len}|text|class_name=kh-cnt|>
 |>
 
 <|{card_audit_open}|dialog|title=Card Audit History|on_action=on_card_history_close|width=700px|
-<|{card_audit_data}|table|columns=Time;Action;Actor;Details|show_all=False|page_size=12|>
+<|{card_audit_data}|table|columns=Time;Action;Actor;Details|show_all=False|page_size=12|filter=True|sortable=True|>
 <|Close|button|on_action=on_card_history_close|class_name=secondary|>
 |>
 
 <|All Cards|text|class_name=sh|>
 <|part|class_name=panel|
-<|{pipeline_all}|table|selected={pipeline_all_sel}|columns=Title;Priority;Assignee;Job;Labels;Attested;Updated|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|show_all=False|page_size=10|on_action=on_card_pick|>
+<|{pipeline_all}|table|selected={pipeline_all_sel}|columns=Title;Priority;Assignee;Job;Labels;Attested;Updated|cell_class_name[Priority]=priority_cell_class|cell_class_name[Job]=status_cell_class|show_all=False|page_size=10|on_action=on_card_pick|filter=True|sortable=True|>
 |>
 
 |>
@@ -719,11 +729,11 @@ SCHEDULE = """
 <|layout|columns=2 1|gap=24px|
 <|part|class_name=panel|
 <|All Appointments|text|class_name=panel-hd|>
-<|{appt_table}|table|columns=Title;Date / Time;Duration;Attendees;Linked Card;Status|style[Status]=status_cell_class|show_all=False|page_size=10|on_action=on_appt_select|>
+<|{appt_table}|table|columns=Title;Date / Time;Duration;Attendees;Linked Card;Status|style[Status]=status_cell_class|show_all=False|page_size=10|on_action=on_appt_select|filter=True|sortable=True|>
 |>
 <|part|class_name=panel|
 <|Upcoming|text|class_name=panel-hd|>
-<|{upcoming_table}|table|columns=Title;Date;Time|show_all=False|page_size=6|>
+<|{upcoming_table}|table|columns=Title;Date;Time|show_all=False|page_size=6|filter=True|sortable=True|>
 |>
 |>
 
@@ -786,7 +796,7 @@ AUDIT = """
 <|Export JSON|button|on_action=on_export_audit_json|class_name=secondary|>
 |>
 
-<|{audit_table}|table|columns=Time;Actor;Action;Resource;Details;Severity|cell_class_name[Severity]=severity_cell_class|show_all=False|page_size=20|>
+<|{audit_table}|table|columns=Time;Actor;Action;Resource;Details;Severity|cell_class_name[Severity]=severity_cell_class|show_all=False|page_size=20|filter=True|sortable=True|>
 
 |>
 """
@@ -800,8 +810,9 @@ QT = """
 <|Paste or type any text to detect and redact personally identifiable information|text|class_name=page-sub|>
 |>
 
-<|part|class_name=nlp-banner|
-NLP Engine: <|{spacy_status}|text|>
+<|part|class_name=nlp-banner status-ribbon|
+<|NLP|text|class_name=banner-label|>
+<|{spacy_status_label}|button|on_action=on_qt_settings_open|class_name=store-mode-pill plain|hover_text={spacy_status_hover}|>
 |>
 
 <|part|class_name=panel|
@@ -936,28 +947,25 @@ UI_DEMO = """
 <|{ui_plot_theme}|selector|lov={ui_plot_theme_lov}|dropdown=True|label=Theme|on_change=on_ui_demo_filters_change|>
 <|{ui_plot_show_legend}|selector|lov={ui_plot_show_legend_lov}|dropdown=True|label=Legend|on_change=on_ui_demo_filters_change|>
 |>
-<|part|render={ui_plot_show_orientation or ui_plot_show_barmode}|
-<|layout|columns=1 1 6|gap=10px|
+<|part|render={ui_plot_show_orientation or ui_plot_show_barmode or ui_plot_show_trace_mode}|
+<|layout|columns=1 1 1 1|gap=10px|
+<|part|render={ui_plot_show_orientation}|
 <|{ui_plot_orientation}|selector|lov={ui_plot_orientation_lov}|dropdown=True|label=Orientation|on_change=on_ui_demo_filters_change|>
-<|{ui_plot_barmode}|selector|lov={ui_plot_barmode_lov}|dropdown=True|label=Bar Mode|on_change=on_ui_demo_filters_change|>
-<|part|>
 |>
+<|part|render={ui_plot_show_barmode}|
+<|{ui_plot_barmode}|selector|lov={ui_plot_barmode_lov}|dropdown=True|label=Bar Mode|on_change=on_ui_demo_filters_change|>
 |>
 <|part|render={ui_plot_show_trace_mode}|
-<|layout|columns=1 7|gap=10px|
 <|{ui_plot_trace_mode}|selector|lov={ui_plot_trace_mode_lov}|dropdown=True|label=Trace Mode|on_change=on_ui_demo_filters_change|>
+|>
 <|part|>
 |>
 |>
-<|layout|columns=1 1 6|gap=10px|
+<|layout|columns=1 1 1 1|gap=10px|
 <|{ui_demo_mode}|selector|lov={ui_demo_mode_lov}|dropdown=True|label=Catalog Mode|hover_text=Filter which catalog charts render: All, Entities only, Confidence only, or Operations only.|on_change=on_ui_demo_filters_change|>
-<|{ui_demo_top_n}|number|label=Top N|min=3|max=25|hover_text=Number of top entity types shown in catalog charts.|action_on_blur=True|on_change=on_ui_demo_filters_change|>
-<|part|>
-|>
-<|layout|columns=1 1 1 7|gap=10px|
+<|{ui_demo_top_n}|number|label=Top N (catalog)|min=3|max=25|hover_text=Number of top entity types shown in catalog charts.|action_on_blur=True|on_change=on_ui_demo_filters_change|>
 <|Refresh|button|on_action=on_ui_demo_refresh|>
 <|Generate Demo Session|button|on_action=on_dash_seed_demo|class_name=secondary|>
-<|part|>
 |>
 <|{ui_demo_summary_md}|text|mode=md|class_name=inline-hint|>
 <|{ui_demo_last_refresh}|text|class_name=inline-hint|render={ui_demo_last_refresh!="—"}|>
@@ -966,7 +974,7 @@ UI_DEMO = """
 <|part|class_name=panel|
 <|1. Chart Playground|text|class_name=sh sh-top|>
 <|{ui_plot_option_rows}|chart|type=plotly|figure={ui_plot_playground_figure}|height=420px|>
-<|{ui_plot_option_rows}|table|columns=Option;Value;Description|show_all=False|page_size=8|>
+<|{ui_plot_option_rows}|table|columns=Option;Value;Description|show_all=False|page_size=8|filter=True|sortable=True|>
 |>
 
 <|part|class_name=panel|
@@ -1013,9 +1021,9 @@ UI_DEMO = """
 <|part|class_name=panel|
 <|4. Underlying Tables|text|class_name=sh sh-top|>
 <|layout|columns=1 1 1|gap=12px|
-<|{ui_demo_entity_table}|table|columns=Entity Type;Count;Share %;Cumulative %|show_all=False|page_size=8|>
-<|{ui_demo_evidence_table}|table|columns=Entity Type;Confidence;Recognizer;Text|show_all=False|page_size=8|>
-<|{ui_demo_pipeline_table}|table|columns=Stage;Count|show_all=False|page_size=8|>
+<|{ui_demo_entity_table}|table|columns=Entity Type;Count;Share %;Cumulative %|show_all=False|page_size=8|filter=True|sortable=True|>
+<|{ui_demo_evidence_table}|table|columns=Entity Type;Confidence;Recognizer;Text|show_all=False|page_size=8|filter=True|sortable=True|>
+<|{ui_demo_pipeline_table}|table|columns=Stage;Count|show_all=False|page_size=8|filter=True|sortable=True|>
 |>
 |>
 
@@ -1024,7 +1032,7 @@ UI_DEMO = """
 
 TELEMETRY = """
 <|part|class_name=panel|
-<|## 📡 Telemetry|text|mode=md|>
+<|## Telemetry|text|mode=md|>
 <|Pipeline observability — job lifecycle events, throughput metrics, and Prometheus integration status.|text|class_name=inline-hint|>
 |>
 
@@ -1093,7 +1101,7 @@ TELEMETRY = """
 
 <|part|class_name=panel|
 <|### Recent Events|text|class_name=sh sh-top|>
-<|{telemetry_event_table}|table|columns=timestamp;event_type;actor;resource_type;resource_id;message|show_all=False|page_size=15|>
+<|{telemetry_event_table}|table|columns=timestamp;event_type;actor;resource_type;resource_id;message|show_all=False|page_size=15|filter=True|sortable=True|>
 |>
 
 <|layout|columns=1 1 1 1|gap=12px|

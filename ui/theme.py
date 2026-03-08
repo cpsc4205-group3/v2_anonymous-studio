@@ -1,6 +1,6 @@
 """UI theme and chart presets for Taipy GUI.
 
-SigNoz × Mraimo dark mode fusion — matches app.css tokens.
+HyperDX + Perspective.js palette — matches app.css tokens.
 Centralizing these keeps app.py focused on state and callbacks.
 """
 
@@ -9,37 +9,37 @@ from __future__ import annotations
 from typing import Any, Dict, List, Tuple
 
 # ══════════════════════════════════════════════════════════════════════════════
-# COLOR PALETTE — SigNoz × Mraimo
+# COLOR PALETTE — HyperDX near-black + Perspective.js accents
 # Keep in sync with :root variables in app.css
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Backgrounds (darkest → lightest)
-BG_BASE     = "#000000"
-BG_SURFACE  = "#0A0A0B"
-BG_ELEVATED = "#141416"
-BG_OVERLAY  = "#1C1C1F"
+# Backgrounds — HyperDX near-black
+BG_BASE     = "#0b0c0f"   # Body — near black
+BG_SURFACE  = "#11131a"   # Panel background
+BG_ELEVATED = "#181b24"   # Elevated / hover
+BG_OVERLAY  = "#22263a"   # Dropdowns / overlays
 
-# Borders
-BORDER_SUBTLE  = "#222225"
-BORDER_DEFAULT = "#333338"
-BORDER_STRONG  = "#44444A"
+# Borders — sharp, minimal (Perspective.js style)
+BORDER_SUBTLE  = "#1c2033"
+BORDER_DEFAULT = "#252c42"
+BORDER_STRONG  = "#323c58"
 
-# Primary accent (SigNoz coral)
-ACCENT       = "#F56565"
-ACCENT_HOVER = "#FF7B7B"
+# Accent — HyperDX electric blue
+ACCENT       = "#3d7eff"
+ACCENT_HOVER = "#6699ff"
 
-# Semantic colors
-COLOR_INFO    = "#60A5FA"
-COLOR_SUCCESS = "#4ADE80"
-COLOR_WARNING = "#FBBF24"
-COLOR_ERROR   = "#F56565"
-COLOR_SPECIAL = "#A78BFA"
-COLOR_CYAN    = "#22D3EE"
+# Semantic Colors
+COLOR_INFO    = "#3d7eff"
+COLOR_SUCCESS = "#0ccf7a"
+COLOR_WARNING = "#f59e0b"
+COLOR_ERROR   = "#f04438"
+COLOR_SPECIAL = "#b77cf0"
+COLOR_CYAN    = "#00b4d8"
 
-# Text hierarchy
-TEXT_PRIMARY   = "#FAFAFA"
-TEXT_SECONDARY = "#A1A1AA"
-TEXT_MUTED     = "#71717A"
+# Text
+TEXT_PRIMARY   = "#e4e9f2"
+TEXT_SECONDARY = "#8b9ab5"
+TEXT_MUTED     = "#4d5873"
 
 # Legacy aliases (for compatibility)
 COLOR_WARN    = COLOR_WARNING
@@ -49,25 +49,26 @@ COLOR_PRIMARY = ACCENT
 # CHART COLORWAY
 # ══════════════════════════════════════════════════════════════════════════════
 
+# HyperDX colorway — electric blue lead, then semantic colors
 MONO_COLORWAY: List[str] = [
-    COLOR_ERROR,    # 0 — coral red
-    COLOR_WARNING,  # 1 — amber
-    COLOR_SUCCESS,  # 2 — green
-    COLOR_INFO,     # 3 — blue
-    COLOR_SPECIAL,  # 4 — purple
+    COLOR_INFO,     # 0 — HyperDX blue
+    COLOR_SUCCESS,  # 1 — vivid green
+    COLOR_WARNING,  # 2 — amber
+    COLOR_SPECIAL,  # 3 — purple (PII)
+    COLOR_ERROR,    # 4 — red
     COLOR_CYAN,     # 5 — cyan
-    "#F472B6",      # 6 — pink
+    "#f97316",      # 6 — orange
 ]
 
 GEO_DARK_SCALE: List[Tuple[float, str]] = [
     (0.0, BG_ELEVATED),
-    (0.4, "#2D3A5A"),
-    (0.75, COLOR_INFO),
-    (1.0, "#93C5FD"),
+    (0.35, "#12234f"),
+    (0.7, COLOR_INFO),
+    (1.0, "#91b4ff"),
 ]
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PLOTLY CHART LAYOUT
+# PLOTLY CHART LAYOUT — HyperDX style
 # ══════════════════════════════════════════════════════════════════════════════
 
 CHART_LAYOUT: Dict[str, Any] = {
@@ -76,38 +77,48 @@ CHART_LAYOUT: Dict[str, Any] = {
     "plot_bgcolor": BG_BASE,
     "font": {
         "color": TEXT_PRIMARY,
-        "family": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "family": "'JetBrains Mono', 'Roboto Mono', ui-monospace, monospace",
         "size": 11,
     },
-    "margin": {"t": 28, "b": 50, "l": 50, "r": 14},
+    "margin": {"t": 28, "b": 44, "l": 48, "r": 12},
     "colorway": MONO_COLORWAY,
     "xaxis": {
-        "gridcolor": BORDER_SUBTLE,
-        "linecolor": BORDER_DEFAULT,
+        "gridcolor": BORDER_DEFAULT,
+        "gridwidth": 1,
+        "showgrid": True,
+        "griddash": "dot",
+        "linecolor": BORDER_STRONG,
         "zerolinecolor": BORDER_STRONG,
-        "tickfont": {"size": 10, "color": TEXT_SECONDARY},
-        "title_font": {"size": 11, "color": TEXT_MUTED},
+        "zerolinewidth": 1,
+        "tickfont": {"size": 10, "color": TEXT_MUTED},
+        "title_font": {"size": 11, "color": TEXT_SECONDARY},
+        "tickcolor": BORDER_SUBTLE,
     },
     "yaxis": {
-        "gridcolor": BORDER_SUBTLE,
-        "linecolor": BORDER_DEFAULT,
+        "gridcolor": BORDER_DEFAULT,
+        "gridwidth": 1,
+        "showgrid": True,
+        "griddash": "dot",
+        "linecolor": BORDER_STRONG,
         "zerolinecolor": BORDER_STRONG,
-        "tickfont": {"size": 10, "color": TEXT_SECONDARY},
-        "title_font": {"size": 11, "color": TEXT_MUTED},
+        "zerolinewidth": 1,
+        "tickfont": {"size": 10, "color": TEXT_MUTED},
+        "title_font": {"size": 11, "color": TEXT_SECONDARY},
+        "tickcolor": BORDER_SUBTLE,
     },
     "legend": {
         "orientation": "h",
-        "y": -0.20,
+        "y": -0.22,
         "x": 0,
         "font": {"size": 10, "color": TEXT_SECONDARY},
         "bgcolor": "rgba(0,0,0,0)",
         "bordercolor": BORDER_DEFAULT,
     },
-    "bargap": 0.26,
+    "bargap": 0.22,
     "hoverlabel": {
         "bgcolor": BG_OVERLAY,
         "bordercolor": BORDER_STRONG,
-        "font": {"color": TEXT_PRIMARY, "size": 12},
+        "font": {"color": TEXT_PRIMARY, "size": 11, "family": "'JetBrains Mono', ui-monospace, monospace"},
         "align": "left",
     },
     "modebar": {
@@ -118,12 +129,12 @@ CHART_LAYOUT: Dict[str, Any] = {
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAIPY STYLEKIT
+# TAIPY STYLEKIT — HyperDX palette
 # ══════════════════════════════════════════════════════════════════════════════
 
 DASH_STYLEKIT: Dict[str, Any] = {
     "color_primary":          ACCENT,
-    "color_secondary":        COLOR_INFO,
+    "color_secondary":        COLOR_CYAN,
     "color_error":            COLOR_ERROR,
     "color_warning":          COLOR_WARNING,
     "color_success":          COLOR_SUCCESS,

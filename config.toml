@@ -45,7 +45,7 @@ scope = "SCENARIO:SCOPE"
 validity_period = "14d0h0m0s:timedelta"
 
 [TASK.anonymize_task]
-function = "tasks:run_pii_anonymization"
+function = "tasks.run_pii_anonymization:function"
 inputs = [ "raw_input:SECTION", "job_config:SECTION",]
 outputs = [ "anon_output:SECTION", "job_stats:SECTION",]
 skippable = "False:bool"

@@ -191,5 +191,5 @@ def _fire(appt_id: str) -> None:
     with _pending_lock:
         _PENDING.append({
             "level": "info",
-            "msg":   f"📅 Review due: {a.title}",
+            "msg":   f"Review due: {a.title}",
         })

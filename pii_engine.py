@@ -124,7 +124,7 @@ def _find_spacy_model() -> tuple[str, bool]:
 
 def _build_spacy_status(model_name: str, has_ner: bool) -> str:
     return (
-        f"✓ Full NER model: {model_name}"
+        f"Full NER model: {model_name}"
         if has_ner else
         "▲ Blank model (regex only) - install en_core_web_lg for full detection"
     )
