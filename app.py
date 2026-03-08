@@ -71,6 +71,7 @@ from services.jobs import (
     build_job_config,
     build_queue_quality_md,
     build_result_quality_md,
+    build_sample_df,
     latest_cancellable_job,
     new_job_id,
     parse_upload_to_df,
@@ -433,6 +434,9 @@ download_cols        = 0
 # Preview table (first 50 rows of result)
 preview_data       = pd.DataFrame()
 preview_cols: List[str]  = []
+job_before_sample_data = pd.DataFrame()
+job_after_sample_data  = pd.DataFrame()
+job_before_after_visible = False
 stats_entity_rows  = pd.DataFrame(columns=["Entity Type", "Count"])
 stats_entity_chart_figure = {}
 job_errors_data    = pd.DataFrame(columns=["Time", "Source", "Details", "Severity"])
@@ -4343,6 +4347,11 @@ def _load_job_results(state, jid: str):
         else:
             state.stats_entity_chart_figure = {}
         state.job_quality_md = build_result_quality_md(stats_data, anon_df)
+        before_df = build_sample_df((stats_data or {}).get("sample_before"))
+        after_df  = build_sample_df((stats_data or {}).get("sample_after"))
+        state.job_before_sample_data  = before_df
+        state.job_after_sample_data   = after_df
+        state.job_before_after_visible = not before_df.empty or not after_df.empty
         if anon_df is not None and not anon_df.empty:
             preview = anon_df.head(50)
             state.preview_data         = preview

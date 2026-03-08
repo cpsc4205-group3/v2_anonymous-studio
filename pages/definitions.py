@@ -315,6 +315,19 @@ JOBS = """
 <|{stats_entity_rows}|table|columns=Entity Type;Count|page_size=8|show_all=False|>
 <|{stats_entity_rows}|chart|type=plotly|figure={stats_entity_chart_figure}|height=260px|>
 |>
+<|part|render={job_before_after_visible}|
+<|Before / After Sample|text|class_name=sh|>
+<|layout|columns=1 1|gap=16px|
+<|part|class_name=settings-panel|
+<|Before (original)|text|class_name=sh sh-top|>
+<|{job_before_sample_data}|table|page_size=3|show_all=False|>
+|>
+<|part|class_name=settings-panel|
+<|After (anonymized)|text|class_name=sh sh-top|>
+<|{job_after_sample_data}|table|page_size=3|show_all=False|>
+|>
+|>
+|>
 <|Preview (first 50 rows)|text|class_name=sh|>
 <|{preview_data}|table|page_size=8|show_all=False|>
 |>
