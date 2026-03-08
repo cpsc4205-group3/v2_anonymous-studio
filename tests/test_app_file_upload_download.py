@@ -338,3 +338,50 @@ def test_on_dash_seed_demo_notifies_when_store_save_fails(monkeypatch):
 
     assert state.qt_session_saved is False
     assert captured_notify and captured_notify[-1][0] == "error"
+
+
+# ── _playground_store_data tests ──────────────────────────────────────────────
+
+def test_playground_store_data_returns_none_when_empty(monkeypatch):
+    """With no sessions, _playground_store_data returns None (sample fallback)."""
+    monkeypatch.setattr(
+        app.store, "stats",
+        lambda: {"entity_breakdown": {}, "pipeline_by_status": {}},
+    )
+    monkeypatch.setattr(app.store, "list_sessions", lambda: [])
+    assert app._playground_store_data() is None
+
+
+def test_playground_store_data_returns_real_data(monkeypatch):
+    """With sessions in the store, _playground_store_data returns chart-ready data."""
+    from store.models import PIISession
+
+    sess = PIISession(
+        title="Test",
+        entities=[
+            {"Entity Type": "PERSON", "Confidence": 92, "Recognizer": "SpacyRecognizer", "Text": "Jane"},
+            {"Entity Type": "EMAIL_ADDRESS", "Confidence": 88, "Recognizer": "PatternRecognizer", "Text": "j@x.co"},
+        ],
+        entity_counts={"PERSON": 1, "EMAIL_ADDRESS": 1},
+        processing_ms=42.5,
+    )
+    monkeypatch.setattr(
+        app.store, "stats",
+        lambda: {
+            "entity_breakdown": {"PERSON": 3, "EMAIL_ADDRESS": 2},
+            "pipeline_by_status": {"backlog": 1, "done": 2},
+        },
+    )
+    monkeypatch.setattr(app.store, "list_sessions", lambda: [sess])
+
+    sd = app._playground_store_data()
+
+    assert sd is not None
+    assert sd["labels"] == ["PERSON", "EMAIL_ADDRESS"]
+    assert sd["counts"] == [3, 2]
+    assert "PERSON" in sd["conf_by_type"]
+    assert 92 in sd["conf_by_type"]["PERSON"]
+    assert 88 in sd["all_confs"]
+    assert sd["funnel_counts"][0] == 1   # backlog
+    assert sd["funnel_counts"][3] == 2   # done
+    assert "SpacyRecognizer" in sd["recog_entity"]
