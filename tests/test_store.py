@@ -414,24 +414,22 @@ class TestSeedData:
         assert len(store.list_appointments()) == 0
         assert len(store.list_audit()) == 0
 
-    # ── Sprint 1 retrospective: backlog verification ───────────────────────────
-    # Per docs/STORY_RECOVERY_README.md and docs/SUMMARY.md, the sprint 1 retro
-    # identified exactly 7 cards remaining in backlog after sprint 1:
+    # ── Sprint 2 status: backlog verification ──────────────────────────────────
+    # After sprint 2, card-011 (Export) moved from backlog to done.
+    # Remaining backlog: 6 cards.
     #   card-004  Patient Records HIPAA Compliance     (high priority)
     #   card-005  Vendor Contract Data Review          (low priority)
-    #   card-011  Export Audit Logs as CSV/JSON        (medium, lost impl.)
     #   card-012  Image PII Detection via OCR          (low priority)
     #   card-013  Role-Based Authentication            (high priority)
     #   card-014  Compliance Review Notifications      (medium priority)
     #   card-015  File Attachments on Pipeline Cards   (medium priority)
 
     def test_sprint_1_retro_backlog_card_ids(self, seeded_store):
-        """Backlog card IDs must exactly match the sprint 1 retro outcome."""
+        """Backlog card IDs must exactly match the current backlog."""
         backlog_ids = {c.id for c in seeded_store.list_cards(status="backlog")}
         expected = {
             "card-004",  # Patient Records HIPAA Compliance
             "card-005",  # Vendor Contract Data Review
-            "card-011",  # Export Audit Logs as CSV/JSON (lost implementation)
             "card-012",  # Image PII Detection via OCR
             "card-013",  # Role-Based Authentication
             "card-014",  # Compliance Review Notifications
@@ -440,11 +438,11 @@ class TestSeedData:
         assert backlog_ids == expected
 
     def test_sprint_1_retro_backlog_count(self, seeded_store):
-        """Seven cards must be in backlog after sprint 1."""
-        assert len(seeded_store.list_cards(status="backlog")) == 7
+        """Six cards must be in backlog after sprint 2."""
+        assert len(seeded_store.list_cards(status="backlog")) == 6
 
     def test_sprint_1_retro_done_card_ids(self, seeded_store):
-        """Done card IDs must match the sprint 1 retro completed work."""
+        """Done card IDs must match completed work through sprint 2."""
         done_ids = {c.id for c in seeded_store.list_cards(status="done")}
         expected = {
             "card-003",  # Research Dataset Anonymization (attested)
@@ -452,6 +450,7 @@ class TestSeedData:
             "card-008",  # ORGANIZATION Entity Support
             "card-009",  # REST API for PII Detection
             "card-010",  # MongoDB Persistence Layer
+            "card-011",  # Export Audit Logs as CSV/JSON
         }
         assert done_ids == expected
 
