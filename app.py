@@ -10,6 +10,8 @@ Pages
   /audit      — immutable compliance audit log
 """
 from __future__ import annotations
+import dataclasses
+import json
 import numbers
 import logging
 import os, re, time, warnings, tempfile
@@ -5016,7 +5018,6 @@ def on_audit_clear(state):
 
 def on_audit_export_csv(state):
     """Export the full audit log as a CSV download."""
-    import dataclasses
     try:
         entries = store.list_audit()
         if not entries:
@@ -5037,8 +5038,6 @@ def on_audit_export_csv(state):
 
 def on_audit_export_json(state):
     """Export the full audit log as a JSON download."""
-    import dataclasses
-    import json
     try:
         entries = store.list_audit()
         if not entries:
@@ -5058,7 +5057,6 @@ def on_audit_export_json(state):
 
 def on_pipeline_export_csv(state):
     """Export all pipeline cards as a CSV download."""
-    import dataclasses
     try:
         cards = store.list_cards()
         if not cards:
@@ -5079,8 +5077,6 @@ def on_pipeline_export_csv(state):
 
 def on_pipeline_export_json(state):
     """Export all pipeline cards as a JSON download."""
-    import dataclasses
-    import json
     try:
         cards = store.list_cards()
         if not cards:
