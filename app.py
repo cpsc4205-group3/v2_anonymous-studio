@@ -3480,8 +3480,11 @@ def on_taipy_event(state, event):
             elif "RUNNING" in val_up:
                 store.log_user_action("system", "taipy.job.running", "job", short_id,
                                       f"Job started running", severity="info")
-    except Exception:
-        pass
+    except Exception as exc:
+        # Swallow exceptions from audit/notification logic so Taipy's event
+        # callback infrastructure is never broken by secondary failures, but
+        # still log for observability and debugging.
+        _log.exception("Error while handling Taipy event %r in on_taipy_event.", event)
     # Refresh the telemetry page if the user is viewing it.
     try:
         if getattr(state, "active_page", "") == "telemetry":
