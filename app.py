@@ -12,7 +12,7 @@ Pages
 from __future__ import annotations
 import numbers
 import logging
-import os, re, time, warnings, tempfile
+import os, re, time, warnings, tempfile, json, dataclasses
 from threading import Thread
 
 _log = logging.getLogger(__name__)
@@ -5012,6 +5012,93 @@ def on_audit_filter(state):
 def on_audit_clear(state):
     state.audit_search = ""; state.audit_sev = "all"
     _refresh_audit(state)
+
+
+def on_audit_export_csv(state):
+    """Export the audit log to a CSV file download."""
+    try:
+        entries = store.list_audit(limit=10_000)
+        df = pd.DataFrame([
+            {
+                "timestamp": e.timestamp,
+                "actor": e.actor,
+                "action": e.action,
+                "resource_type": e.resource_type,
+                "resource_id": e.resource_id,
+                "details": e.details,
+                "severity": e.severity,
+            }
+            for e in entries
+        ])
+        csv_bytes = df.to_csv(index=False).encode("utf-8")
+        store.log_user_action("user", "audit.export_csv", "audit", "", f"Exported {len(entries)} entries")
+        download(state, content=csv_bytes, name="audit_log.csv")
+        notify(state, "success", f"Exported {len(entries)} audit entries as CSV.")
+    except Exception as exc:
+        notify(state, "error", f"Export failed: {exc}")
+
+
+def on_audit_export_json(state):
+    """Export the audit log to a JSON file download."""
+    try:
+        entries = store.list_audit(limit=10_000)
+        data = [
+            {
+                "timestamp": e.timestamp,
+                "actor": e.actor,
+                "action": e.action,
+                "resource_type": e.resource_type,
+                "resource_id": e.resource_id,
+                "details": e.details,
+                "severity": e.severity,
+            }
+            for e in entries
+        ]
+        json_bytes = json.dumps(data, indent=2).encode("utf-8")
+        store.log_user_action("user", "audit.export_json", "audit", "", f"Exported {len(entries)} entries")
+        download(state, content=json_bytes, name="audit_log.json")
+        notify(state, "success", f"Exported {len(entries)} audit entries as JSON.")
+    except Exception as exc:
+        notify(state, "error", f"Export failed: {exc}")
+
+
+def on_pipeline_export_csv(state):
+    """Export all pipeline cards to a CSV file download."""
+    try:
+        cards = store.list_cards()
+        df = pd.DataFrame([
+            {
+                "id": c.id,
+                "title": c.title,
+                "status": c.status,
+                "priority": c.priority,
+                "assignee": c.assignee,
+                "labels": ";".join(c.labels),
+                "attested": c.attested,
+                "created_at": c.created_at,
+                "updated_at": c.updated_at,
+            }
+            for c in cards
+        ])
+        csv_bytes = df.to_csv(index=False).encode("utf-8")
+        store.log_user_action("user", "pipeline.export_csv", "pipeline", "", f"Exported {len(cards)} cards")
+        download(state, content=csv_bytes, name="pipeline_cards.csv")
+        notify(state, "success", f"Exported {len(cards)} pipeline cards as CSV.")
+    except Exception as exc:
+        notify(state, "error", f"Export failed: {exc}")
+
+
+def on_pipeline_export_json(state):
+    """Export all pipeline cards to a JSON file download."""
+    try:
+        cards = store.list_cards()
+        data = [dataclasses.asdict(c) for c in cards]
+        json_bytes = json.dumps(data, indent=2, default=str).encode("utf-8")
+        store.log_user_action("user", "pipeline.export_json", "pipeline", "", f"Exported {len(cards)} cards")
+        download(state, content=json_bytes, name="pipeline_cards.json")
+        notify(state, "success", f"Exported {len(cards)} pipeline cards as JSON.")
+    except Exception as exc:
+        notify(state, "error", f"Export failed: {exc}")
 
 
 # ── Dashboard ────────────────────────────────────────────────────────────────

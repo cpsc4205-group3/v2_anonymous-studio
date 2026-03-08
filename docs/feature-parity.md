@@ -54,7 +54,7 @@ These features from the demo cards are still **in backlog**:
 ### New Feature Requests (Backlog)
 | Card ID | Story Title | Description | Priority | Labels |
 |---------|-------------|-------------|----------|--------|
-| card-011 | Export Audit Logs as CSV/JSON | **⚠️ LOST IMPLEMENTATION:** Repository memories reference this as implemented at app.py:5008-5072 and pages/definitions.py:593-602, but these lines don't exist. Need to re-implement from scratch. Add download buttons to export audit log and pipeline data in CSV/JSON formats | Medium | feature, compliance |
+| card-011 | Export Audit Logs as CSV/JSON | ✅ **IMPLEMENTED:** `on_audit_export_csv`, `on_audit_export_json`, `on_pipeline_export_csv`, `on_pipeline_export_json` callbacks in app.py. Export buttons on Audit and Pipeline pages. Uses `pandas.to_csv()` and `json.dumps()`. All exports log to audit trail and trigger browser download via `taipy.gui.download()`. | Medium | feature, compliance |
 | card-012 | Image PII Detection via OCR | Accept PNG/JPG uploads, extract text via Tesseract OCR, apply Presidio PII detection | Low | feature, ocr |
 | card-013 | Role-Based Authentication | User login with email/password and RBAC (Admin, Compliance Officer, Developer, Researcher). Store hashed passwords. | High | feature, security |
 | card-014 | Compliance Review Notifications | Email/in-app notifications 24h before scheduled appointments with card details | Medium | feature, compliance |
@@ -79,12 +79,11 @@ These features from the demo cards are still **in backlog**:
 
 ### High Priority (Should Implement Soon)
 1. **card-013: Role-Based Authentication** — High priority security feature for production use
-2. **card-011: Export Audit Logs** — Medium priority compliance requirement for documentation
 
 ### Medium Priority (Nice to Have)
-3. **Encrypt Operator Key Management** — Complete the partially-done encrypt feature with UI key field
-4. **card-014: Compliance Review Notifications** — Enhances existing scheduler feature
-5. **card-015: File Attachments on Cards** — Improves pipeline workflow
+2. **Encrypt Operator Key Management** — Complete the partially-done encrypt feature with UI key field
+3. **card-014: Compliance Review Notifications** — Enhances existing scheduler feature
+4. **card-015: File Attachments on Cards** — Improves pipeline workflow
 
 ### Low Priority (Future Enhancements)
 6. **card-012: Image OCR** — New capability, requires Tesseract integration
