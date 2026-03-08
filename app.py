@@ -2704,7 +2704,8 @@ def _playground_store_data() -> Optional[Dict[str, Any]]:
     labels = [e[0] for e in top5]
     counts = [int(e[1]) for e in top5]
 
-    # Daily entity trends (last 7 days)
+    # Daily entity trends (last 7 days).
+    # created_at is always an ISO-8601 string from _now() (e.g. "2026-03-08T…").
     daily: Dict[str, int] = _dd(int)
     for s in sessions:
         day = (getattr(s, "created_at", "") or "")[:10]
@@ -2841,10 +2842,10 @@ def _refresh_plotly_playground(state) -> None:
     if sd is not None:
         labels = sd["labels"]
         series_a = sd["counts"]
-        series_b = [0] * len(labels)
+        series_b = []
         points_x = sd["daily_labels"]
         points_y = sd["daily_counts"]
-        points_z = [0] * len(points_x)
+        points_z = []
         dates = sd["daily_labels"]
     else:
         labels = ["PERSON", "EMAIL_ADDRESS", "PHONE_NUMBER", "URL", "IP_ADDRESS"]
@@ -2868,30 +2869,40 @@ def _refresh_plotly_playground(state) -> None:
     if chart_type == "bar":
         if orient_flag == "h":
             fig.add_bar(y=labels, x=series_a, name="Current", orientation="h", marker_color=colors[0])
-            fig.add_bar(y=labels, x=series_b, name="Previous", orientation="h", marker_color=colors[1])
+            if using_sample:
+                fig.add_bar(y=labels, x=series_b, name="Previous", orientation="h", marker_color=colors[1])
             x_title, y_title = "Count", "Entity Type"
         else:
             fig.add_bar(x=labels, y=series_a, name="Current", marker_color=colors[0])
-            fig.add_bar(x=labels, y=series_b, name="Previous", marker_color=colors[1])
+            if using_sample:
+                fig.add_bar(x=labels, y=series_b, name="Previous", marker_color=colors[1])
             x_title, y_title = "Entity Type", "Count"
         fig.update_layout(barmode=barmode)
     elif chart_type == "line":
-        fig.add_scatter(x=points_x, y=points_y, mode=trace_mode, name="Current", line=dict(color=colors[0], width=2))
-        fig.add_scatter(x=points_x, y=points_z, mode=trace_mode, name="Previous", line=dict(color=colors[1], width=2))
+        fig.add_scatter(x=points_x, y=points_y, mode=trace_mode, name="Detections", line=dict(color=colors[0], width=2))
+        if using_sample:
+            fig.add_scatter(x=points_x, y=points_z, mode=trace_mode, name="Previous", line=dict(color=colors[1], width=2))
         x_title, y_title = "Day", "Detections"
     elif chart_type == "scatter":
+        if not using_sample and sd and sd["conf_by_type"]:
+            sc_x = [int(sd["conf_by_type"].get(l, [0])[0]) if sd["conf_by_type"].get(l) else 0 for l in labels]
+            sc_y = [len(sd["conf_by_type"].get(l, [])) for l in labels]
+            sc_sizes = [max(8, c) for c in series_a]
+        else:
+            sc_x, sc_y, sc_sizes = series_a, series_b, [16, 14, 12, 10, 9]
         fig.add_scatter(
-            x=series_a,
-            y=series_b,
+            x=sc_x,
+            y=sc_y,
             mode=trace_mode,
             name="Entity Clusters",
-            marker=dict(size=[16, 14, 12, 10, 9], color=colors[:5]),
+            marker=dict(size=sc_sizes[:len(labels)], color=colors[:len(labels)]),
             text=labels,
         )
-        x_title, y_title = "Current", "Previous"
+        x_title, y_title = ("Confidence" if not using_sample else "Current"), ("Occurrences" if not using_sample else "Previous")
     elif chart_type == "area":
-        fig.add_scatter(x=points_x, y=points_y, mode=trace_mode, name="Current", fill="tozeroy", line=dict(color=colors[0]))
-        fig.add_scatter(x=points_x, y=points_z, mode=trace_mode, name="Previous", fill="tozeroy", line=dict(color=colors[1]))
+        fig.add_scatter(x=points_x, y=points_y, mode=trace_mode, name="Detections", fill="tozeroy", line=dict(color=colors[0]))
+        if using_sample:
+            fig.add_scatter(x=points_x, y=points_z, mode=trace_mode, name="Previous", fill="tozeroy", line=dict(color=colors[1]))
         x_title, y_title = "Day", "Detections"
     elif chart_type == "pie":
         fig.add_pie(labels=labels, values=series_a, hole=0.45, marker=dict(colors=colors[:len(labels)]), textinfo="label+percent")
