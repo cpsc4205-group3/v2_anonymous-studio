@@ -522,7 +522,6 @@ def log_auth_event(
 
 def log_permission_check(permission: str, granted: bool) -> None:
     """Log an RBAC permission check for compliance auditing."""
-    user_id = get_current_user_id() or "anonymous"
     result = "granted" if granted else "denied"
     log_auth_event(
         action=f"rbac.{result}",
