@@ -2428,7 +2428,8 @@ def _refresh_dashboard(state):
 
         # Bar chart — last 12 sessions, processing time per session
         recent   = timing_sessions[-12:]
-        labels   = [getattr(s, "title", s.id[:8]) for s in recent]
+        raw_labels = [getattr(s, "title", s.id[:8]) for s in recent]
+        labels   = [lbl[:14] + "…" if len(lbl) > 14 else lbl for lbl in raw_labels]
         values   = [round(s.processing_ms, 1) for s in recent]
         # Colour each bar by speed: green (<50ms), amber (<200ms), red (≥200ms)
         bar_colors = [
@@ -2441,7 +2442,8 @@ def _refresh_dashboard(state):
             text=[f"{v} ms" for v in values],
             textposition="outside",
             cliponaxis=False,
-            hovertemplate="%{x}<br>%{y} ms<extra></extra>",
+            customdata=raw_labels,
+            hovertemplate="%{customdata}<br>%{y} ms<extra></extra>",
         ))
         perf_fig.update_layout(
             **{
@@ -2461,7 +2463,7 @@ def _refresh_dashboard(state):
             }
         )
         state.dash_perf_figure = perf_fig
-        state.perf_telemetry_table = pd.DataFrame({"Session": labels, "ms": values})
+        state.perf_telemetry_table = pd.DataFrame({"Session": raw_labels, "ms": values})
         state.dash_perf_visible = True
     else:
         state.dash_perf_avg_ms   = 0.0

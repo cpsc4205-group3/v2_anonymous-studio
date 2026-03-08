@@ -624,6 +624,29 @@ body,
   margin-bottom: var(--space-2) !important;
 }
 
+/* Override default MUI blue (#1976d2) on the progress bar fill */
+.taipy-metric .MuiLinearProgress-root {
+  background-color: var(--border-default) !important;
+  border-radius: 1px;
+}
+
+.taipy-metric .MuiLinearProgress-bar,
+.taipy-metric .MuiLinearProgress-barColorPrimary,
+.taipy-metric .MuiLinearProgress-bar1Linear {
+  background-color: var(--accent) !important;
+}
+
+/* Override delta value colors — MUI colorPrimary defaults to blue */
+.taipy-metric .MuiTypography-colorPrimary,
+.taipy-metric .MuiTypography-root[class*="colorPrimary"] {
+  color: var(--color-success) !important;
+}
+
+.taipy-metric .MuiTypography-colorError,
+.taipy-metric .MuiTypography-root[class*="colorError"] {
+  color: var(--color-error) !important;
+}
+
 .store-mode-pill {
   display: inline-flex;
   align-items: center;
