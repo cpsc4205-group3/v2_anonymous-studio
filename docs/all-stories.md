@@ -150,47 +150,27 @@ These are the core project stories defined in `store/memory.py` as demo cards.
 
 ## Backlog Stories (card-011 through card-015)
 
-### 📋 card-011: Export Audit Logs as CSV/JSON
-**Status:** Backlog 📋  
+### ✅ card-011: Export Audit Logs as CSV/JSON
+**Status:** Done ✅  
 **Priority:** Medium  
 **Labels:** feature, compliance  
+**Implementation:** `app.py` (callbacks), `pages/definitions.py` (UI buttons), `tests/test_export.py` (7 tests)  
 **Description:** Add download buttons to export audit log and pipeline data in CSV and JSON formats for compliance documentation sharing.
 
-**⚠️ IMPORTANT NOTE:** Repository memories reference this as "implemented" with citations to:
-- `app.py:5008-5072`
-- `app.py:4926-5040`
-- `pages/definitions.py:593-602`
-- `pages/definitions.py:503-511`
-
-However, these line numbers don't exist in current codebase. **This functionality appears to be LOST.**
-
 **Acceptance Criteria:**
-- [ ] Add "Export CSV" button to Audit page
-- [ ] Add "Export JSON" button to Audit page
-- [ ] Add "Export All CSV" button to Pipeline page
-- [ ] Add "Export All JSON" button to Pipeline page
-- [ ] Implement on_audit_export_csv callback
-- [ ] Implement on_audit_export_json callback
-- [ ] Implement on_pipeline_export_csv callback
-- [ ] Implement on_pipeline_export_json callback
-- [ ] Use pandas.to_csv() for CSV export
-- [ ] Use json.dumps() for JSON export (no pickle)
-- [ ] All exports log to audit trail
-- [ ] Show success/error notifications
-- [ ] Use taipy.gui.download() for file download
-
-**UI Locations:**
-- Audit page: After the audit log table, add "Export" section
-- Pipeline page: After "All Cards" table, add "Export Pipeline Data" section
-
-**Referenced Implementation (LOST):**
-```python
-# These functions were supposedly implemented but are missing:
-# - on_audit_export_csv(state)
-# - on_audit_export_json(state)
-# - on_pipeline_export_csv(state)
-# - on_pipeline_export_json(state)
-```
+- [x] Add "Export CSV" button to Audit page
+- [x] Add "Export JSON" button to Audit page
+- [x] Add "Export All CSV" button to Pipeline page
+- [x] Add "Export All JSON" button to Pipeline page
+- [x] Implement on_audit_export_csv callback
+- [x] Implement on_audit_export_json callback
+- [x] Implement on_pipeline_export_csv callback
+- [x] Implement on_pipeline_export_json callback
+- [x] Use pandas.to_csv() for CSV export
+- [x] Use json.dumps() for JSON export (no pickle)
+- [x] All exports log to audit trail
+- [x] Show success/error notifications
+- [x] Use taipy.gui.download() for file download
 
 ### 📋 card-012: Image PII Detection via OCR
 **Status:** Backlog 📋  
@@ -301,58 +281,40 @@ class PipelineCard:
 
 ---
 
-## Additional Stories from Repository Memories
+## Additional Notes
 
-These stories were referenced in repository memories but don't have corresponding pipeline cards.
+### Export Functionality (card-011) — Recovered
 
-### 🔍 LOST: Export Functionality (Detailed Implementation)
+Export functionality was previously reported as lost but has been **re-implemented and verified**:
 
-**Status:** LOST 🔍 (mentioned in memories but not in code)  
-**Evidence:** Repository memories cite specific implementation at:
-- `app.py:5008-5072` (does not exist — app.py is 5409 lines)
-- `app.py:4926-5040` (does not exist)
-- `pages/definitions.py:593-602` (pages/definitions.py is 835 lines)
-- `pages/definitions.py:503-511` (does not exist)
-- `docs/export-functionality.md:1-300` (file does not exist)
-
-**What Was Supposedly Implemented:**
-1. Audit page export buttons (CSV, JSON)
-2. Pipeline page export buttons (CSV, JSON)
-3. Callback functions: on_audit_export_csv, on_audit_export_json
-4. Callback functions: on_pipeline_export_csv, on_pipeline_export_json
-5. Full audit trail logging for all exports
-6. Success/error notifications
-
-**Why This Matters:**
-This suggests that either:
-1. The implementation was in a branch that was never merged
-2. The implementation was in commits that were lost during repo archiving
-3. The memories are incorrect/outdated
-
-**Recommended Action:**
-Implement card-011 from scratch, using the memory details as design guidance.
+- `app.py:5140-5157` — `on_audit_export_csv()` exports audit log to CSV
+- `app.py:5160-5176` — `on_audit_export_json()` exports audit log to JSON
+- `app.py:5179-5196` — `on_pipeline_export_csv()` exports pipeline cards to CSV
+- `app.py:5199-5215` — `on_pipeline_export_json()` exports pipeline cards to JSON
+- `pages/definitions.py:503-504` — Pipeline export buttons
+- `pages/definitions.py:604-605` — Audit export buttons
+- `tests/test_export.py` — 7 tests
 
 ---
 
 ## Summary Statistics
 
 **Total Pipeline Cards:** 15
-- ✅ Done: 6 (card-001, card-002, card-003, card-006, card-008, card-009, card-010)
+- ✅ Done: 7 (card-001, card-002, card-003, card-006, card-008, card-009, card-010, card-011)
 - ⚠️ In Progress: 1 (card-007)
-- 📋 Backlog: 5 (card-004, card-005, card-011, card-012, card-013, card-014, card-015)
-- 🔍 Lost: 1 (Export functionality from card-011 may have been implemented but lost)
+- 📋 Backlog: 4 (card-004, card-005, card-012, card-013, card-014, card-015)
 
 **Priority Breakdown:**
-- Critical: 2 (1 done, 1 backlog)
+- Critical: 2 (2 done)
 - High: 3 (1 done, 2 backlog)
-- Medium: 7 (3 done, 1 in progress, 3 backlog)
+- Medium: 7 (4 done, 1 in progress, 2 backlog)
 - Low: 3 (1 done, 2 backlog)
 
 **Feature Categories:**
-- Core PII Detection: 6 done
-- Infrastructure: 1 done, 1 backlog
+- Core PII Detection: 7 done
+- Infrastructure: 1 done
 - Security: 1 in progress, 1 backlog
-- Compliance: 2 backlog
+- Compliance: 1 backlog
 - User Experience: 2 backlog
 
 ---
@@ -361,13 +323,12 @@ Implement card-011 from scratch, using the memory details as design guidance.
 
 ### Immediate Priority (Next Sprint)
 1. **card-007:** Complete encrypt operator (finish what's started)
-2. **card-011:** Implement export functionality (LOST, needs recovery)
-3. **card-013:** Role-based authentication (high security priority)
+2. **card-013:** Role-based authentication (high security priority)
 
 ### Medium Priority (Sprint +1)
-4. **card-014:** Compliance notifications (extends existing scheduler)
-5. **card-015:** File attachments on cards (enhances workflow)
-6. **card-004:** Patient records HIPAA (high priority use case)
+3. **card-014:** Compliance notifications (extends existing scheduler)
+4. **card-015:** File attachments on cards (enhances workflow)
+5. **card-004:** Patient records HIPAA (high priority use case)
 
 ### Low Priority (Future)
 7. **card-012:** Image OCR (new capability)
@@ -407,119 +368,6 @@ Implement card-011 from scratch, using the memory details as design guidance.
 - Ensure audit logging for all features (card-011, card-014)
 
 ---
-
-## Appendix: Lost Implementation Recovery
-
-### Export Functionality Pseudo-Code (Reconstructed from Memories)
-
-Based on repository memories, here's what the lost export implementation might have looked like:
-
-```python
-# app.py - Audit page export callbacks
-
-def on_audit_export_csv(state):
-    """Export audit log to CSV file."""
-    try:
-        audit_entries = APP_CTX.store.list_audit()
-        df = pd.DataFrame([
-            {
-                "timestamp": e.timestamp,
-                "action": e.action,
-                "user": e.user,
-                "details": e.details,
-                "severity": e.severity,
-            }
-            for e in audit_entries
-        ])
-        csv_bytes = df.to_csv(index=False).encode('utf-8')
-        
-        # Log export to audit trail
-        APP_CTX.store.log_user_action("audit.export", "admin", "CSV export")
-        
-        # Trigger download
-        download(state, content=csv_bytes, name="audit_log.csv")
-        notify(state, "success", f"Exported {len(audit_entries)} audit entries to CSV")
-    except Exception as e:
-        notify(state, "error", f"Export failed: {e}")
-
-def on_audit_export_json(state):
-    """Export audit log to JSON file."""
-    try:
-        audit_entries = APP_CTX.store.list_audit()
-        data = [
-            {
-                "timestamp": e.timestamp,
-                "action": e.action,
-                "user": e.user,
-                "details": e.details,
-                "severity": e.severity,
-            }
-            for e in audit_entries
-        ]
-        json_bytes = json.dumps(data, indent=2).encode('utf-8')
-        
-        APP_CTX.store.log_user_action("audit.export", "admin", "JSON export")
-        download(state, content=json_bytes, name="audit_log.json")
-        notify(state, "success", f"Exported {len(audit_entries)} audit entries to JSON")
-    except Exception as e:
-        notify(state, "error", f"Export failed: {e}")
-
-def on_pipeline_export_csv(state):
-    """Export all pipeline cards to CSV."""
-    try:
-        cards = APP_CTX.store.list_cards()
-        df = pd.DataFrame([
-            {
-                "id": c.id,
-                "title": c.title,
-                "status": c.status,
-                "priority": c.priority,
-                "assignee": c.assignee,
-                "created_at": c.created_at,
-                "updated_at": c.updated_at,
-                "attested": c.attested,
-            }
-            for c in cards
-        ])
-        csv_bytes = df.to_csv(index=False).encode('utf-8')
-        
-        APP_CTX.store.log_user_action("pipeline.export", "admin", "CSV export")
-        download(state, content=csv_bytes, name="pipeline_cards.csv")
-        notify(state, "success", f"Exported {len(cards)} cards to CSV")
-    except Exception as e:
-        notify(state, "error", f"Export failed: {e}")
-
-def on_pipeline_export_json(state):
-    """Export all pipeline cards to JSON."""
-    try:
-        cards = APP_CTX.store.list_cards()
-        data = [dataclasses.asdict(c) for c in cards]
-        json_bytes = json.dumps(data, indent=2, default=str).encode('utf-8')
-        
-        APP_CTX.store.log_user_action("pipeline.export", "admin", "JSON export")
-        download(state, content=json_bytes, name="pipeline_cards.json")
-        notify(state, "success", f"Exported {len(cards)} cards to JSON")
-    except Exception as e:
-        notify(state, "error", f"Export failed: {e}")
-```
-
-```markdown
-# pages/definitions.py - UI markup additions
-
-# In AUDIT page, after the audit table:
-<|Export|section|
-<|Export CSV|button|on_action=on_audit_export_csv|>
-<|Export JSON|button|on_action=on_audit_export_json|>
-|>
-
-# In PIPELINE page, after "All Cards" table:
-<|Export Pipeline Data|section|
-<|Export All CSV|button|on_action=on_pipeline_export_csv|>
-<|Export All JSON|button|on_action=on_pipeline_export_json|>
-|>
-```
-
-**Note:** This is reconstructed pseudo-code based on memory descriptions. The actual lost implementation may have differed.
 
 ---
 

@@ -361,7 +361,7 @@ class MemoryStore(StoreBase):
                     "Add download buttons to export audit log and pipeline data "
                     "in CSV and JSON formats for compliance documentation sharing."
                 ),
-                status="backlog", priority="medium",
+                status="done", priority="medium",
                 labels=["feature", "compliance"],
             ),
             PipelineCard(

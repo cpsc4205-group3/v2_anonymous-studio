@@ -54,7 +54,7 @@ These features from the demo cards are still **in backlog**:
 ### New Feature Requests (Backlog)
 | Card ID | Story Title | Description | Priority | Labels |
 |---------|-------------|-------------|----------|--------|
-| card-011 | Export Audit Logs as CSV/JSON | Export audit log and pipeline card data in CSV/JSON formats with download buttons on Audit and Pipeline pages | ✅ Done | feature, compliance |
+| card-011 | Export Audit Logs as CSV/JSON | Export audit log and pipeline card data in CSV/JSON formats with download buttons on Audit and Pipeline pages. Callbacks: `on_audit_export_csv`, `on_audit_export_json`, `on_pipeline_export_csv`, `on_pipeline_export_json` in `app.py`. UI buttons on Audit and Pipeline pages. | ✅ Done | feature, compliance |
 | card-012 | Image PII Detection via OCR | Accept PNG/JPG uploads, extract text via Tesseract OCR, apply Presidio PII detection | Low | feature, ocr |
 | card-013 | Role-Based Authentication | User login with email/password and RBAC (Admin, Compliance Officer, Developer, Researcher). Store hashed passwords. | High | feature, security |
 | card-014 | Compliance Review Notifications | Email/in-app notifications 24h before scheduled appointments with card details | Medium | feature, compliance |
@@ -113,45 +113,16 @@ When implementing a backlog story:
 
 ---
 
-## Investigation Notes: Lost Export Functionality
+## Investigation Notes: Export Functionality (Recovered)
 
 ### Summary
-Repository memories (from previous agent sessions) claim that export functionality (card-011) was implemented with specific file locations:
-- `app.py:5008-5072` — Supposedly contained export callbacks
-- `pages/definitions.py:593-602` — Supposedly contained export UI buttons
-- `docs/export-functionality.md:1-300` — Supposedly documented the feature
+Repository memories (from previous agent sessions) previously claimed that export functionality (card-011) was implemented but lost. This has since been **re-implemented and verified**:
 
-### Current Reality
-**None of these exist in the current codebase:**
-- `app.py` is only 5409 lines (line 5072 doesn't exist)
-- `pages/definitions.py` is only 835 lines (line 602 doesn't exist)
-- `docs/export-functionality.md` does not exist
-
-### Possible Explanations
-1. **Implementation was in a branch that was never merged** — Most likely scenario
-2. **Code was lost during repository archiving** — Mentioned in the issue description
-3. **Memories are incorrect/hallucinated** — Possible but unlikely given specific line numbers
-4. **Code was intentionally removed** — No git history evidence of deletion
-
-### Evidence from Memories
-The memories contained detailed implementation descriptions:
-- 4 callback functions: `on_audit_export_csv`, `on_audit_export_json`, `on_pipeline_export_csv`, `on_pipeline_export_json`
-- Used `pandas.to_csv()` and `json.dumps()` (no pickle)
-- Logged all exports to audit trail
-- Showed success/error notifications
-- UI sections after audit table and pipeline "All Cards" table
-
-### Recovery Plan
-Since the original implementation is lost, we've created:
-1. **docs/all-stories.md** — Full reconstruction of what card-011 should include
-2. **docs/github-issues-template.md** — Detailed issue template with acceptance criteria
-3. **Pseudo-code in docs/all-stories.md Appendix** — Reconstructed implementation based on memory descriptions
-
-The feature needs to be re-implemented from scratch using these documents as guidance.
-
-### Lesson Learned
-This incident highlights the importance of:
-- Merging feature branches promptly to main
-- Not relying solely on agent memories for source of truth
-- Keeping GitHub issues/PRs as authoritative record of work
-- Regular backups and verification that features are actually committed
+### Current Status: ✅ Implemented
+- `app.py:5140-5157` — `on_audit_export_csv()` callback
+- `app.py:5160-5176` — `on_audit_export_json()` callback
+- `app.py:5179-5196` — `on_pipeline_export_csv()` callback
+- `app.py:5199-5215` — `on_pipeline_export_json()` callback
+- `pages/definitions.py:503-504` — Pipeline export buttons (CSV/JSON)
+- `pages/definitions.py:604-605` — Audit export buttons (CSV/JSON)
+- `tests/test_export.py` — 7 tests covering export functionality
